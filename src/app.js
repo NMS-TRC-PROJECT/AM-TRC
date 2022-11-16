@@ -1,6 +1,6 @@
 import express from "express";
 import morgan from "morgan";
-import { exec } from "child_process";
+import router from "./routes/index.js";
 
 const app = express();
 
@@ -10,33 +10,7 @@ app.use(express.urlencoded({ extended: false }));
 
 app.set("port", process.env.PORT || 3000);
 
-app.post("/api/ts", (req, res) => {
-  const { input, output } = req.body;
-  const ffmpeg =
-    "LD_LIBRARY_PATH=/home/shlee/ffmpeg_220916/libs:/home/shlee/ffmpeg_220916/libs/cuda /home/shlee/ffmpeg_220916/ffmpeg";
-
-  const command = `${ffmpeg} -i /home/shlee/${input} -s 1920*1080 -c:v libx264 -b:v 5000k -c:a aac /home/shlee/${output}`;
-
-  exec(command, (error, stdout, stderr) => {
-    if (error) {
-      console.error(`exec error: ${error.toString()}`);
-      return;
-    }
-    console.log(`stdout: ${stdout.toString()}`);
-    console.log(`stderr: ${stderr.toString()}`);
-  });
-
-  exec(command2, (error, stdout, stderr) => {
-    if (error) {
-      console.error(`exec error: ${error.toString()}`);
-      return;
-    }
-    console.log(`stdout: ${stdout.toString()}`);
-    console.log(`stderr: ${stderr.toString()}`);
-  });
-
-  res.json({ resultCode: 201, errorString: "" });
-});
+app.use("/api", router);
 
 app.use((req, res, next) => {
   const error = new Error(
@@ -47,7 +21,7 @@ app.use((req, res, next) => {
 });
 
 app.use((err, req, res, next) => {
-  return res.json({
+  return res.status(404).json({
     success: false,
     message: err.message,
     result: err,

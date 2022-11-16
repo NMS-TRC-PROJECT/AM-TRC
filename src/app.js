@@ -11,21 +11,29 @@ app.use(express.urlencoded({ extended: false }));
 app.set("port", process.env.PORT || 3000);
 
 app.post("/api/ts", (req, res) => {
-  const { source_video } = req.body;
+  const { input, output } = req.body;
   const ffmpeg =
     "LD_LIBRARY_PATH=/home/shlee/ffmpeg_220916/libs:/home/shlee/ffmpeg_220916/libs/cuda /home/shlee/ffmpeg_220916/ffmpeg";
 
-  exec(
-    `${ffmpeg} -i /home/shlee/${source_video} -s 1920*1080 -c:v libx264 -b:v 5000k -c:a aac /home/shlee/out_8.ts`,
-    (error, stdout, stderr) => {
-      if (error) {
-        console.error(`exec error: ${error.toString()}`);
-        return;
-      }
-      console.log(`stdout: ${stdout.toString()}`);
-      console.log(`stderr: ${stderr.toString()}`);
+  const command = `${ffmpeg} -i /home/shlee/${input} -s 1920*1080 -c:v libx264 -b:v 5000k -c:a aac /home/shlee/${output}`;
+
+  exec(command, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`exec error: ${error.toString()}`);
+      return;
     }
-  );
+    console.log(`stdout: ${stdout.toString()}`);
+    console.log(`stderr: ${stderr.toString()}`);
+  });
+
+  exec(command2, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`exec error: ${error.toString()}`);
+      return;
+    }
+    console.log(`stdout: ${stdout.toString()}`);
+    console.log(`stderr: ${stderr.toString()}`);
+  });
 
   res.json({ resultCode: 201, errorString: "" });
 });

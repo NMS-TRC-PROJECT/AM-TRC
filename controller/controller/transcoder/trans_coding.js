@@ -1,27 +1,30 @@
-import { spawn } from "child_process";
-import dotenv from "dotenv";
-dotenv.config();
+const { spawn } = require("child_process");
+require("dotenv").config();
+const cwd = process.env.FFMPEG_LOCAL;
 
-export const trc = (req, res) => {
-  const cwd = process.env.FFMPEG_LOCAL;
-  const { command } = res.locals;
-  console.log(command);
+Object.defineProperties(exports, {
+  spawn: {
+    enumerable: true,
+    value: (req, res) => {
+      const { command } = res.locals;
 
-  const ts = spawn("ffmpeg", command, {
-    cwd,
-  });
+      const ts = spawn("ffmpeg", command, {
+        cwd,
+      });
 
-  ts.stdout.on("data", (data) => {
-    console.log(`stdout: ${data}`);
-  });
+      ts.stdout.on("data", (data) => {
+        console.log(`stdout: ${data}`);
+      });
 
-  ts.stderr.on("data", (data) => {
-    console.error(`stderr: ${data}`);
-  });
+      ts.stderr.on("data", (data) => {
+        console.error(`stderr: ${data}`);
+      });
 
-  ts.on("close", (code) => {
-    console.log(`child process exited with code ${code}`);
-  });
+      ts.on("close", (code) => {
+        console.log(`child process exited with code ${code}`);
+      });
 
-  return res.status(201).json({ resultCode: 201, errorString: "" });
-};
+      return res.status(201).json({ resultCode: 201, errorString: "" });
+    },
+  },
+});

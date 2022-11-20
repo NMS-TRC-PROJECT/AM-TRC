@@ -1,7 +1,7 @@
-import express from "express";
-import morgan from "morgan";
-import router from "./routes/index.js";
-import cors from "cors";
+const express = require("express"),
+  morgan = require("morgan"),
+  routes = require("./routes"),
+  cors = require("cors");
 
 const app = express();
 
@@ -12,9 +12,10 @@ app.use(express.urlencoded({ extended: false }));
 
 app.set("port", process.env.PORT || 3000);
 
-app.use("/api", router);
+app.use("/routes", routes);
 
 app.use((err, req, res, next) => {
+  console.log(err);
   return res.json({
     success: false,
     message: err.message,

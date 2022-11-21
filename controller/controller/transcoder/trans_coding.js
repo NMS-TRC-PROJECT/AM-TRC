@@ -8,9 +8,7 @@ Object.defineProperties(exports, {
     value: (req, res) => {
       const { command } = res.locals;
 
-      const ts = spawn("ffmpeg", command, {
-        cwd,
-      });
+      const ts = spawn("/home/shlee/ffmpeg_220916/ffmpeg", command);
 
       ts.stdout.on("data", (data) => {
         console.log(`stdout: ${data}`);
@@ -27,4 +25,6 @@ Object.defineProperties(exports, {
       return res.status(201).json({ resultCode: 201, errorString: "" });
     },
   },
+
+  process: {},
 });

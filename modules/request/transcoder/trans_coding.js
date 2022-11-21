@@ -1,5 +1,5 @@
 require("dotenv").config();
-const PWD = process.env.LOCAL_PWD_PATH;
+const PWD = process.env.OFFICE_PWD_PATH;
 
 Object.defineProperties(exports, {
   encoding: {

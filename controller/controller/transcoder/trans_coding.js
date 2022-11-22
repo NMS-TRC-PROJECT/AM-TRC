@@ -1,30 +1,24 @@
-const { spawn } = require("child_process");
+const modules = require("../../../modules/request");
+
 require("dotenv").config();
-const cwd = process.env.FFMPEG_LOCAL;
 
 Object.defineProperties(exports, {
   spawn: {
     enumerable: true,
     value: (req, res) => {
       const { command } = res.locals;
-
-      const ts = spawn("/home/shlee/ffmpeg_220916/ffmpeg", command);
-
-      ts.stdout.on("data", (data) => {
-        console.log(`stdout: ${data}`);
-      });
-
-      ts.stderr.on("data", (data) => {
-        console.error(`stderr: ${data}`);
-      });
-
-      ts.on("close", (code) => {
-        console.log(`child process exited with code ${code}`);
-      });
+      modules.request.transcoder.spawn(command);
 
       return res.status(201).json({ resultCode: 201, errorString: "" });
     },
   },
 
-  process: {},
+  logger: {
+    enumerable: true,
+    value: (req, res) => {
+      modules.request.transcoder.logger();
+
+      return res.status(201).json({ resultCode: 201, errorString: "" });
+    },
+  },
 });

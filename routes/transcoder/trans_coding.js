@@ -8,4 +8,10 @@ router.post(
   controller.controller.transcoder.encoding.spawn
 );
 
+router.post(
+  "/logger",
+  controller.validation.transcoder.encoding.logger,
+  controller.controller.transcoder.encoding.logger
+);
+
 module.exports = router;

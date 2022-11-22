@@ -15,7 +15,7 @@ Object.defineProperties(exports, {
 
   logger: {
     enumerable: true,
-    value: (req, res) => {
+    value: (req, res, next) => {
       modules.request.transcoder.logger();
 
       return res.status(201).json({ resultCode: 201, errorString: "" });

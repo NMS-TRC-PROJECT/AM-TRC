@@ -1,15 +1,5 @@
 const { spawn } = require("child_process");
-const Logger = require("@amuzlab/logger")({
-  level: "debug",
-  timestamp: true,
-  timeFormat: "YYYY-MM-DD HH:mm:ss",
-  transport: "file",
-  logDir: "~/log",
-  logFileName: "out",
-  datePattern: "YYYY-MM-DD",
-  maxSize: "50m",
-  maxFiles: "10d",
-});
+const logger = require("../../logger/ffmpeg_logger");
 
 require("dotenv").config();
 const ffmpeg = process.env.FFMPEG_OFFICE;
@@ -34,23 +24,22 @@ Object.defineProperties(exports, {
   spawn: {
     enumerable: true,
     value: (command) => {
-      Logger.info("log message %s", `ffmpeg command : ${command}`);
-      spawn(ffmpeg, command).on("close", (code) => {
-        Logger.info(
-          "log message %s",
-          `child process exited with code : ${code}`
-        );
+      logger.ffmpeg_info("command", command.join(" "));
+
+      const ts = spawn(ffmpeg, command);
+
+      ts.stderr.on("data", (data) => {
+        logger.ffmpeg_info("stderr", data);
+      });
+
+      ts.on("close", (code) => {
+        logger.ffmpeg_info("child process exited with code", code);
       });
     },
   },
 
   logger: {
     enumerable: true,
-    value: () => {
-      // Logger.debug("log message", "debug");
-      // Logger.info("log message %s", "info");
-      // Logger.warn("log message %s %j", "warn");
-      // Logger.error("log message %s %j", new Error("error"));
-    },
+    value: () => {},
   },
 });

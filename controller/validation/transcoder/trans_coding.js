@@ -1,23 +1,7 @@
 const modules = require("../../../modules/request");
-
-const Logger = require("@amuzlab/logger")({
-  level: "debug",
-  timestamp: true,
-  timeFormat: "YYYY-MM-DD HH:mm:ss",
-  transport: "file",
-  logDir: "~/log",
-  logFileName: "out",
-  datePattern: "YYYY-MM-DD",
-  maxSize: "50m",
-  maxFiles: "10d",
-});
+const logger = require("../../../modules/logger/ffmpeg_logger");
 
 Object.defineProperties(exports, {
-  // 데이터 서술자 사용, value를 사용하면 데이터 서술자이다.
-  // enumerable 속성은 해당 객체의 속성들의 열거 유무이며 default는 false이다.
-
-  // 접근자 서술자는 getter, setter를 사용한다.
-
   spawn: {
     enumerable: true,
     value: (req, res, next) => {
@@ -43,20 +27,22 @@ Object.defineProperties(exports, {
 
       if (!output) err_msg.push("check out file");
 
+      const command = modules.request.transcoder.encoding_command(
+        input,
+        resolution,
+        video_c,
+        audio_c,
+        Kbps_v,
+        output
+      );
+
       if (err_msg.length === 0) {
-        res.locals.command = modules.request.transcoder.encoding_command(
-          input,
-          resolution,
-          video_c,
-          audio_c,
-          Kbps_v,
-          output
-        );
+        res.locals.command = command;
         next();
       } else {
         const error = new Error(err_msg.join(" and "));
         error.status = 400;
-        Logger.error("log message %s %j", new Error(error));
+        logger.ffmpeg_error(error.stack, `command : ${command.join(" ")}`);
         next(error);
       }
     },

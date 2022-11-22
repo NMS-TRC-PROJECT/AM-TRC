@@ -15,7 +15,6 @@ app.set("port", process.env.PORT || 3000);
 app.use("/routes", routes);
 
 app.use((err, req, res, next) => {
-  console.log(err);
   return res.json({
     success: false,
     message: err.message,

@@ -15,11 +15,11 @@ Object.defineProperties(exports, {
       if (video_c) command.push("-c:v", `${video_c}`);
       if (audio_c) command.push("-c:a", `${audio_c}`);
       if (Kbps_v) command.push("-b:v", `${Kbps_v}k`);
-      command.push(`${PWD}/${output}`);
-
+      command.push(`${PWD}/${output}`, "-report");
       return command;
     },
   },
+  // 2> /home/shlee/logs/~/log/
 
   spawn: {
     enumerable: true,
@@ -27,7 +27,6 @@ Object.defineProperties(exports, {
       logger.ffmpeg_info("command", command.join(" "));
 
       const ts = spawn(ffmpeg, command);
-
       ts.stderr.on("data", (data) => {
         logger.ffmpeg_info("stderr", data);
       });

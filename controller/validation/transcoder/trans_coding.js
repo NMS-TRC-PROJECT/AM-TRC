@@ -1,5 +1,17 @@
 const modules = require("../../../modules/request");
 
+const Logger = require("@amuzlab/logger")({
+  level: "debug",
+  timestamp: true,
+  timeFormat: "YYYY-MM-DD HH:mm:ss",
+  transport: "file",
+  logDir: "~/log",
+  logFileName: "out",
+  datePattern: "YYYY-MM-DD",
+  maxSize: "50m",
+  maxFiles: "10d",
+});
+
 Object.defineProperties(exports, {
   // 데이터 서술자 사용, value를 사용하면 데이터 서술자이다.
   // enumerable 속성은 해당 객체의 속성들의 열거 유무이며 default는 false이다.
@@ -32,7 +44,7 @@ Object.defineProperties(exports, {
       if (!output) err_msg.push("check out file");
 
       if (err_msg.length === 0) {
-        res.locals.command = modules.request.transcoder.encoding(
+        res.locals.command = modules.request.transcoder.encoding_command(
           input,
           resolution,
           video_c,
@@ -44,8 +56,16 @@ Object.defineProperties(exports, {
       } else {
         const error = new Error(err_msg.join(" and "));
         error.status = 400;
+        Logger.error("log message %s %j", new Error(error));
         next(error);
       }
+    },
+  },
+
+  logger: {
+    enumerable: true,
+    value: (req, res, next) => {
+      next();
     },
   },
 });

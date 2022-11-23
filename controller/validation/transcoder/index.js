@@ -1,5 +1,5 @@
 Object.defineProperties(exports, {
-  encoding: {
+  modules: {
     enumerable: true,
     value: require("./trans_coding"),
   },

@@ -54,4 +54,11 @@ Object.defineProperties(exports, {
       next();
     },
   },
+
+  worker: {
+    enumerable: true,
+    value: (req, res, next) => {
+      next();
+    },
+  },
 });

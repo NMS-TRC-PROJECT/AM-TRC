@@ -4,14 +4,20 @@ const express = require("express"),
 
 router.post(
   "/spawn",
-  controller.validation.transcoder.encoding.spawn,
-  controller.controller.transcoder.encoding.spawn
+  controller.validation.transcoder.modules.spawn,
+  controller.controller.transcoder.modules.spawn
 );
 
 router.post(
   "/logger",
-  controller.validation.transcoder.encoding.logger,
-  controller.controller.transcoder.encoding.logger
+  controller.validation.transcoder.modules.logger,
+  controller.controller.transcoder.modules.logger
+);
+
+router.post(
+  "/worker",
+  controller.validation.transcoder.modules.worker,
+  controller.controller.transcoder.modules.worker
 );
 
 module.exports = router;

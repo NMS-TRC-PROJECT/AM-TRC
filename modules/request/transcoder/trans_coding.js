@@ -15,7 +15,7 @@ Object.defineProperties(exports, {
       if (video_c) command.push("-c:v", `${video_c}`);
       if (audio_c) command.push("-c:a", `${audio_c}`);
       if (Kbps_v) command.push("-b:v", `${Kbps_v}k`);
-      command.push(`${PWD}/${output}`, "-report");
+      command.push(`${PWD}/${output}`);
       return command;
     },
   },
@@ -35,10 +35,5 @@ Object.defineProperties(exports, {
         logger.ffmpeg_info("child process exited with code", code);
       });
     },
-  },
-
-  logger: {
-    enumerable: true,
-    value: () => {},
   },
 });

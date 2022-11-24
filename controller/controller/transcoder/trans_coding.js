@@ -1,4 +1,6 @@
 const modules = require("../../../modules/request");
+const worker = require("@amuzlab/worker");
+const { Job, Worker, WorkerContainer, error, map } = worker;
 
 require("dotenv").config();
 
@@ -23,39 +25,12 @@ Object.defineProperties(exports, {
   worker: {
     enumerable: true,
     value: (req, res) => {
-      /*  const worker = require("@amuzlab/worker");
-      const { Job, Worker, WorkerContainer, error, map } = worker;
+      const workerContainer = new WorkerContainer().on(
+        "workerExec",
+        (job, worker, workerContainer) => {}
+      );
 
-      const _map = new Map();
-      _map.set("service-type1", "/path/to/some/worker1.js");
-      _map.set("service-type2", "/path/to/some/worker2.js");
-      _map.set("service-type3", "/path/to/some/worker3.js");
-
-      worker.map = _map;
-
-      const workerContainer = new WorkerContainer({
-        maxWorkerCount: 1,
-        autoGenerateJobId: false,
-      })
-        .on("workerExec", (job, worker, workerContainer) => {})
-        .on("workerEnd", (job, worker, workerContainer) => {})
-        .on("workerStop", (job, worker, workerContainer) => {})
-        .on("workerError", (err, job, worker, workerContainer) => {})
-        .on("execError", (err, job, workerContainer) => {});
-
-      let id = 0;
-      utils.forEach(_map, (_, key) => {
-        // const job = {id: id++, serviceType: key} or
-        const job = new Job();
-        job.id = id++;
-        job.serviceType = key;
-        workerContainer.exec(job);
-      });
-
-      workerContainer.cancel(2);
-      workerContainer.cancel((job) => job.id === 0 || job.id === 1);
-      workerContainer.cancel(Symbol.for("amuzlab.worker.cancel.READY"));
-      workerContainer.cancel(Symbol.for("amuzlab.worker.cancel.ALL")); */
+      return res.status(201).json({ resultCode: 201, errorString: "" });
     },
   },
 });

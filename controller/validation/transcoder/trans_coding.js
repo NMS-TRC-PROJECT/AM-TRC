@@ -1,5 +1,5 @@
 const modules = require("../../../modules/request");
-const logger = require("../../../modules/logger/ffmpeg_logger");
+const ffmpeg_logger = require("../../../modules/logger/ffmpeg_logger");
 
 Object.defineProperties(exports, {
   spawn: {
@@ -42,16 +42,12 @@ Object.defineProperties(exports, {
       } else {
         const error = new Error(err_msg.join(" and "));
         error.status = 400;
-        logger.ffmpeg_error(error.stack, `command : ${command.join(" ")}`);
+        ffmpeg_logger.ffmpeg_error(
+          error.stack,
+          `command : ${command.join(" ")}`
+        );
         next(error);
       }
-    },
-  },
-
-  logger: {
-    enumerable: true,
-    value: (req, res, next) => {
-      next();
     },
   },
 

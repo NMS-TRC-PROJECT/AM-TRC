@@ -15,13 +15,6 @@ Object.defineProperties(exports, {
     },
   },
 
-  logger: {
-    enumerable: true,
-    value: (req, res) => {
-      return res.status(201).json({ resultCode: 201, errorString: "" });
-    },
-  },
-
   worker: {
     enumerable: true,
     value: (req, res) => {

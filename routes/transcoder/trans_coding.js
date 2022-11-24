@@ -9,12 +9,6 @@ router.post(
 );
 
 router.post(
-  "/logger",
-  controller.validation.transcoder.modules.logger,
-  controller.controller.transcoder.modules.logger
-);
-
-router.post(
   "/worker",
   controller.validation.transcoder.modules.worker,
   controller.controller.transcoder.modules.worker

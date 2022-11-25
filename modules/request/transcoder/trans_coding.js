@@ -1,5 +1,6 @@
 const { spawn } = require("child_process");
-const ffmpeg_logger = require("../../logger/ffmpeg_logger");
+const ffmpegLogger = require("../../logger/ffmpegLogger");
+const systemLogger = require("../../logger/systemLogger");
 
 require("dotenv").config();
 const ffmpeg = process.env.FFMPEG_OFFICE;
@@ -24,15 +25,17 @@ Object.defineProperties(exports, {
   spawn: {
     enumerable: true,
     value: (command) => {
-      ffmpeg_logger.ffmpeg_info("command", command.join(" "));
+      ffmpegLogger.ffmpegInfo("command", command.join(" "));
+      systemLogger.systemInfo("ffmpeg_command", command.join(" "));
 
       const ts = spawn(ffmpeg, command);
       ts.stderr.on("data", (data) => {
-        ffmpeg_logger.ffmpeg_info("stderr", data);
+        ffmpegLogger.ffmpegInfo("stderr", data);
       });
 
       ts.on("close", (code) => {
-        ffmpeg_logger.ffmpeg_info("child process exited with code", code);
+        ffmpegLogger.ffmpegInfo("child process exited with code", code);
+        systemLogger.systemInfo("child process exited with code", code);
       });
     },
   },

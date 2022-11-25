@@ -2,7 +2,7 @@ const express = require("express"),
   morgan = require("morgan"),
   routes = require("./routes"),
   cors = require("cors"),
-  system_logger = require("./modules/logger/system_logger");
+  systemLogger = require("./modules/logger/systemLogger");
 
 const app = express();
 
@@ -16,9 +16,11 @@ app.set("port", process.env.PORT || 3000);
 app.use(
   "/routes",
   (req, res, next) => {
-    system_logger.system_info(
-      "server info",
-      `method ${req.method}, Url ${req.originalUrl}`
+    systemLogger.systemInfo(
+      "server info %s",
+      `method ${req.method}, Url ${req.originalUrl}, body ${JSON.stringify(
+        req.body
+      )}`
     );
     next();
   },
@@ -26,7 +28,7 @@ app.use(
 );
 
 app.use((err, req, res, next) => {
-  system_logger.system_info("server error (err : %s)", err.stack);
+  systemLogger.systemError("server error (err : %s)", err.stack);
   return res.json({
     success: false,
     message: err.message,

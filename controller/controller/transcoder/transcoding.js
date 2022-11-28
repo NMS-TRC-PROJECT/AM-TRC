@@ -22,7 +22,6 @@ Object.defineProperties(exports, {
       let job = createJob(body);
 
       const result = manager.exec(job);
-      console.log(result);
 
       return res.status(200).json({ resultCode: 200, errorString: "" });
     },

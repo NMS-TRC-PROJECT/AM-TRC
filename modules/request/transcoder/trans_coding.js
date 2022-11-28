@@ -17,6 +17,7 @@ Object.defineProperties(exports, {
       if (audio_c) command.push("-c:a", `${audio_c}`);
       if (Kbps_v) command.push("-b:v", `${Kbps_v}k`);
       command.push(`${PWD}/${output}`);
+      console.log(command)
       return command;
     },
   },

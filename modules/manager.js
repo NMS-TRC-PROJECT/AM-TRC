@@ -1,4 +1,5 @@
-const worker = require("@amuzlab/worker");
+const worker = require("@amuzlab/worker"),
+  workerMapper = require("./WorkerMapper");
 
 class Manager extends require("events") {
   constructor() {
@@ -9,17 +10,11 @@ class Manager extends require("events") {
         value: new worker.WorkerContainer({
           maxWorkerCount: 2,
         })
-          .on("workerExec", (job, worker, workerContainer) => {
-            console.log(job);
-          })
+          .on("workerExec", (job, worker, workerContainer) => {})
           .on("workerEnd", (job, worker, workerContainer) => {})
           .on("workerStop", (job, worker, workerContainer) => {})
-          .on("workerError", (error, job, worker, workerContainer) => {
-            console.log(error, job, worker, workerContainer, "workerError");
-          })
-          .on("execError", (error, job, workerContainer) => {
-            console.log(error, job, worker, workerContainer, "execError");
-          }),
+          .on("workerError", (error, job, worker, workerContainer) => {})
+          .on("execError", (error, job, workerContainer) => {}),
       },
     });
   }
@@ -30,10 +25,8 @@ class Manager extends require("events") {
 
   exec(job) {
     let result;
-    // this.ffmpegContainer1.execWorker(job, this.ffmpegContainer1); 맞는건지 모르겠음
 
     result = this.ffmpegContainer1.exec(job);
-
     return result;
   }
 }

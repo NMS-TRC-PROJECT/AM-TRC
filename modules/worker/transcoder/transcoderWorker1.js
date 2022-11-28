@@ -14,14 +14,18 @@ const command = [
   "/home/shlee/out_3.ts",
 ];
 
-class shleeWorker extends require("@amuzlab/worker").Worker {
+class transcoderWorker1 extends require("@amuzlab/worker").Worker {
   constructor() {
     super();
   }
 
   exec() {
-    trc.spawn(command);
+    // trc.spawn(command);
+  }
+
+  stop() {
+    console.log("stop");
   }
 }
 
-module.exports = shleeWorker;
+module.exports = transcoderWorker1;

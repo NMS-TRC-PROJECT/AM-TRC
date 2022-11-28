@@ -16,10 +16,11 @@ Object.defineProperties(exports, {
     },
   },
 
-  worker: {
+  execJob: {
     enumerable: true,
     value: (body, req, res, next) => {
       let job = createJob(body);
+      checkExistenceJob(body.id);
 
       const result = manager.exec(job);
 
@@ -35,4 +36,15 @@ function createJob(obj) {
   job.serviceType = obj.serviceType;
 
   return job;
+}
+
+function checkExistenceJob(id) {
+  const queue = [
+    ...manager.ffmpegContainer1.readyQueue,
+    ...manager.ffmpegContainer1.execQueue,
+  ];
+
+  if (queue.some((j) => j.data.id === id)) {
+    throw new Error("This ID is already in use.");
+  }
 }

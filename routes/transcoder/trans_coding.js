@@ -9,9 +9,9 @@ router.post(
 );
 
 router.post(
-  "/worker",
-  controller.validation.transcoder.modules.worker,
-  controller.controller.transcoder.modules.worker
+  "/execJob",
+  controller.validation.transcoder.modules.execJob,
+  controller.controller.transcoder.modules.execJob
 );
 
 module.exports = router;

@@ -15,7 +15,10 @@ _map.set(
   "ffmpegTRC_1",
   "/home/shlee/Node_server/modules/worker/transcoder/transcoderWorker1.js"
 );
-_map.set("ffmpegTRC_2", "/");
+_map.set(
+  "ffmpegTRC_2",
+  "/home/shlee/Node_server/modules/worker/transcoder/transcoderWorker1.js"
+);
 
 worker.map = _map;
 

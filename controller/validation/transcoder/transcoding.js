@@ -51,11 +51,10 @@ Object.defineProperties(exports, {
     },
   },
 
-  worker: {
+  execJob: {
     enumerable: true,
     value: (req, res, next) => {
       const { body } = req;
-      manager.checkExistenceJob(body.transactionId);
 
       // systemLogger.systemDebug("execJOB (body: %s)");  에러처리 하기 위한 로깅
       next(body);

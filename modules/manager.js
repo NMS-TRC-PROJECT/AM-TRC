@@ -12,9 +12,24 @@ class Manager extends require("events") {
         value: new worker.WorkerContainer({
           maxWorkerCount: 2,
         })
-          .on("workerExec", (job, worker, workerContainer) => {})
-          .on("workerEnd", (job, worker, workerContainer) => {})
-          .on("workerStop", (job, worker, workerContainer) => {})
+          .on("workerExec", (job, worker, workerContainer) => {
+            systemLogger.systemInfo(
+              "[workerContainer] workerExec (job: %s, error : %s)",
+              `${JSON.stringify(job)}`
+            );
+          })
+          .on("workerEnd", (job, worker, workerContainer) => {
+            systemLogger.systemInfo(
+              "[workerContainer] workerEnd (job: %s, error : %s)",
+              `${JSON.stringify(job)}`
+            );
+          })
+          .on("workerStop", (job, worker, workerContainer) => {
+            systemLogger.systemInfo(
+              "[workerContainer] workerStop (job: %s, error : %s)",
+              `${JSON.stringify(job)}`
+            );
+          })
           .on("workerError", (error, job, worker, workerContainer) => {
             if (error) {
               systemLogger.systemError(
@@ -42,6 +57,10 @@ class Manager extends require("events") {
     result = this.ffmpegContainer1.exec(job);
 
     return result;
+  }
+
+  cancel(id) {
+    return this.ffmpegContainer1.cancel(id);
   }
 
   get workerContainer() {

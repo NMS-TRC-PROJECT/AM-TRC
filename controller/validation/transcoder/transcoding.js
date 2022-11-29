@@ -60,4 +60,12 @@ Object.defineProperties(exports, {
       next(body);
     },
   },
+
+  cancelJob: {
+    enumerable: true,
+    value: (req, res, next) => {
+      const { transactionId } = req.params;
+      next(transactionId);
+    },
+  },
 });

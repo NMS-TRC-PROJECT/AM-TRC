@@ -2,10 +2,13 @@ const { spawn } = require("child_process");
 const ffmpegLogger = require("../../logger/ffmpegLogger");
 const systemLogger = require("../../logger/systemLogger");
 
+const manager = require("../../../modules/manager");
+const TrcWorker1 = require("../../worker/transcoder/transcoderWorker1"),
+  trcWorker1 = new TrcWorker1();
+
 require("dotenv").config();
 const ffmpeg = process.env.FFMPEG_OFFICE;
 const PWD = process.env.OFFICE_PWD_PATH;
-// const cwd = process.env.LOCAL_PWD_PATH;
 
 Object.defineProperties(exports, {
   encoding_command: {
@@ -20,22 +23,26 @@ Object.defineProperties(exports, {
       return command;
     },
   },
-  // 2> /home/shlee/logs/~/log/
 
   spawn: {
     enumerable: true,
-    value: (command) => {
-      ffmpegLogger.ffmpegInfo("command", command.join(" "));
-      systemLogger.systemInfo("ffmpeg_command", command.join(" "));
+    value: (command, workerId) => {
+      return new Promise((resolve, reject) => {
+        ffmpegLogger.ffmpegInfo("command", command.join(" "));
+        systemLogger.systemInfo("ffmpeg_command", command.join(" "));
 
-      const ts = spawn(ffmpeg, command);
-      ts.stderr.on("data", (data) => {
-        ffmpegLogger.ffmpegInfo("stderr", data);
-      });
+        const ts = spawn(ffmpeg, command);
+        ts.stderr.on("data", (data) => {
+          ffmpegLogger.ffmpegInfo("stderr", data);
+        });
 
-      ts.on("close", (code) => {
-        ffmpegLogger.ffmpegInfo("child process exited with code", code);
-        systemLogger.systemInfo("child process exited with code", code);
+        ts.on("close", (code) => {
+          ffmpegLogger.ffmpegInfo("child process exited with code", code);
+          systemLogger.systemInfo("child process exited with code", code);
+          resolve("end");
+        });
+
+        // ts.kill();
       });
     },
   },

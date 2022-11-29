@@ -1,10 +1,13 @@
+const http = require("http");
+
 const express = require("express"),
   morgan = require("morgan"),
   routes = require("./routes"),
   cors = require("cors"),
   systemLogger = require("./modules/logger/systemLogger");
 
-const app = express();
+const app = express(),
+  server = http.createServer(app);
 
 app.use(morgan("dev"));
 app.use(cors());
@@ -36,6 +39,16 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(app.get("port"), () => {
-  console.log(`listening ${app.get("port")}`);
+server.listen(app.get("port"), () => {
+  systemLogger.systemInfo(
+    "server info %s",
+    `server start ${app.get("port")} port`
+  );
+});
+
+server.on("close", () => {
+  systemLogger.systemInfo(
+    "server info %s",
+    `server close ${app.get("port")} port`
+  );
 });

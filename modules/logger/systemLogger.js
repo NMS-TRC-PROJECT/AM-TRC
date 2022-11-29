@@ -17,7 +17,11 @@ Object.defineProperties(exports, {
   systemError: {
     enumerable: true,
     value: (message, data, data2) => {
-      systemLogger.error(`${message} %s`, `: ${data}`, `: ${data2}`);
+      systemLogger.error(
+        `${message} %s`,
+        `: ${data}`,
+        data2 ? `: ${data2}` : ""
+      );
     },
   },
   systemWarn: {

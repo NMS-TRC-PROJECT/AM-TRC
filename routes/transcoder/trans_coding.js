@@ -14,4 +14,10 @@ router.post(
   controller.controller.transcoder.modules.execJob
 );
 
+router.delete(
+  "/cancelJob/:transactionId",
+  controller.validation.transcoder.modules.cancelJob,
+  controller.controller.transcoder.modules.cancelJob
+);
+
 module.exports = router;

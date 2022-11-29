@@ -21,8 +21,16 @@ Object.defineProperties(exports, {
     value: (body, req, res, next) => {
       let job = createJob(body);
       checkExistenceJob(body.id);
+      manager.exec(job);
 
-      const result = manager.exec(job);
+      return res.status(200).json({ resultCode: 200, errorString: "" });
+    },
+  },
+
+  cancelJob: {
+    enumerable: true,
+    value: (transactionId, req, res, next) => {
+      manager.cancel(Number(transactionId));
 
       return res.status(200).json({ resultCode: 200, errorString: "" });
     },
@@ -31,7 +39,7 @@ Object.defineProperties(exports, {
 
 function createJob(obj) {
   let job = new Job();
-  job.id = obj.transactionId;
+  job.id = obj.id;
   job.data = obj;
   job.serviceType = obj.serviceType;
 

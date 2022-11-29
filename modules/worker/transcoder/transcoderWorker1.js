@@ -1,8 +1,10 @@
 const trc = require("../../../modules/request/transcoder/trans_coding");
+const manager = require("../../../modules/manager");
+
 const command = [
   "-y",
   "-i",
-  "/home/shlee/out_4M.mp4",
+  "/home/shlee/out_3.ts",
   "-s",
   "300*300",
   "-c:v",
@@ -11,7 +13,7 @@ const command = [
   "aac",
   "-b:v",
   "100k",
-  "/home/shlee/out_3.ts",
+  "/home/shlee/out_4.ts",
 ];
 
 class transcoderWorker1 extends require("@amuzlab/worker").Worker {
@@ -19,12 +21,12 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
     super();
   }
 
-  exec() {
-    // trc.spawn(command);
-  }
+  async exec() {
+    const job = this.job;
+    this.emit("exec", job, this);
 
-  stop() {
-    console.log("stop");
+    const end = await trc.spawn(command, job.data.id);
+    this.emit(end, job, this);
   }
 }
 

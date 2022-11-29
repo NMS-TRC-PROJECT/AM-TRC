@@ -9,6 +9,8 @@ const TrcWorker1 = require("../../worker/transcoder/transcoderWorker1"),
 require("dotenv").config();
 const ffmpeg = process.env.FFMPEG_OFFICE;
 const PWD = process.env.OFFICE_PWD_PATH;
+// const ffmpeg = process.env.FFMPEG_LOCAL;
+// const PWD = process.env.LOCAL_PWD_PATH;
 
 Object.defineProperties(exports, {
   encoding_command: {

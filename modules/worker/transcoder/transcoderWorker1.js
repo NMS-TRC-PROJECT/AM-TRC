@@ -15,6 +15,23 @@ const command = [
   "100k",
   "/home/shlee/out_4.ts",
 ];
+// 회사 용
+
+/* const command = [
+  "-y",
+  "-i",
+  "/C: /Users/flejd/Documents/amuzlab_study/study/4.mp4",
+  "-s",
+  "300*300",
+  "-c:v",
+  "libx264",
+  "-c:a",
+  "aac",
+  "-b:v",
+  "100k",
+  "/home/shlee/out_4.ts",
+];
+// 로컬 용 */
 
 class transcoderWorker1 extends require("@amuzlab/worker").Worker {
   constructor() {

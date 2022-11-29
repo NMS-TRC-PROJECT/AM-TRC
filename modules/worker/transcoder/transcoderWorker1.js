@@ -25,8 +25,9 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
     const job = this.job;
     this.emit("exec", job, this);
 
-    const end = await trc.spawn(command, job.data.id);
-    this.emit(end, job, this);
+    const result = await trc.spawn(command, job.data.id);
+    console.log(result);
+    this.emit(result.end, job, this);
   }
 }
 

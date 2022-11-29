@@ -35,11 +35,12 @@ Object.defineProperties(exports, {
         ts.stderr.on("data", (data) => {
           ffmpegLogger.ffmpegInfo("stderr", data);
         });
+        resolve(ts.pid);
 
         ts.on("close", (code) => {
           ffmpegLogger.ffmpegInfo("child process exited with code", code);
           systemLogger.systemInfo("child process exited with code", code);
-          resolve("end");
+          resolve({ end: "end", processId: ts.pid });
         });
 
         // ts.kill();

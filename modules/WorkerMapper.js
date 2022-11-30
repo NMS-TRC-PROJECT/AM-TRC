@@ -13,7 +13,7 @@ const worker = require("@amuzlab/worker"),
     },
   });
 
-const _map = new Map();
+/* const _map = new Map();
 _map.set(
   "ffmpegTRC_1",
   "/home/shlee/Node_server/modules/worker/transcoder/transcoderWorker1.js"
@@ -23,9 +23,17 @@ _map.set(
   "ffmpegTRC_2",
   "/home/shlee/Node_server/modules/worker/transcoder/transcoderWorker1.js"
   //   "./modules/worker/transcoder/transcoderWorker1.js" 로컬용
-);
+); */
+// worker.map = _map;
 
-worker.map = _map;
+MAPPER = {};
+
+MAPPER[SERVICE_TYPE.FFMPEG_TRC_1] =
+  "/home/shlee/Node_server/modules/worker/transcoder/transcoderWorker1.js";
+MAPPER[SERVICE_TYPE.FFMPEG_TRC_2] =
+  "/home/shlee/Node_server/modules/worker/transcoder/transcoderWorker2.js";
+
+worker.map = MAPPER;
 
 Object.defineProperties(exports, {
   SERVICE_TYPE: {

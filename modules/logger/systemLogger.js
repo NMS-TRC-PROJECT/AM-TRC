@@ -10,7 +10,11 @@ Object.defineProperties(exports, {
   systemInfo: {
     enumerable: true,
     value: (message, data, data2) => {
-      systemLogger.info(`${message} %s`, `: ${data}`);
+      systemLogger.info(
+        `${message} %s`,
+        `: ${data}`,
+        data2 ? `: ${data2}` : ""
+      );
     },
   },
 

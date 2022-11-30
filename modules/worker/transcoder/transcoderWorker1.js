@@ -1,5 +1,7 @@
 const trc = require("../../../modules/request/transcoder/trans_coding");
-const manager = require("../../../modules/manager");
+
+const ffmpegLogger = require("../../logger/ffmpegLogger");
+const systemLogger = require("../../logger/systemLogger");
 
 const command = [
   "-y",
@@ -38,13 +40,24 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
     super();
   }
 
-  async exec() {
+  exec() {
     const job = this.job;
     this.emit("exec", job, this);
 
-    const result = await trc.spawn(command, job.data.id);
-    console.log(result);
-    this.emit(result.end, job, this);
+    const ts = trc.trc_spawn(command, job.data.id);
+    job.data.childPsId = ts.pid;
+    ffmpegLogger.ffmpegInfo("command", command.join(" "));
+    systemLogger.systemInfo("ffmpeg_command", command.join(" "));
+
+    ts.stderr.on("data", (data) => {
+      ffmpegLogger.ffmpegInfo("stderr", data);
+    });
+
+    ts.on("close", (code) => {
+      ffmpegLogger.ffmpegInfo("child process exited with code", code);
+      systemLogger.systemInfo("child process exited with code", code);
+      if (code === 0) this.emit("end", job, this);
+    });
   }
 }
 

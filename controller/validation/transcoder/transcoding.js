@@ -55,8 +55,6 @@ Object.defineProperties(exports, {
     enumerable: true,
     value: (req, res, next) => {
       const { body } = req;
-
-      // systemLogger.systemDebug("execJOB (body: %s)");  에러처리 하기 위한 로깅
       next(body);
     },
   },

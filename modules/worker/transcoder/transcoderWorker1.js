@@ -1,11 +1,14 @@
 const trc = require("../../../modules/request/transcoder/trans_coding");
 
-const ffmpegLogger = require("../../logger/ffmpegLogger");
-const systemLogger = require("../../logger/systemLogger");
+const ffmpegLogger = require("../../logger/ffmpegLogger"),
+  systemLogger = require("../../logger/systemLogger");
+
+const path = require("path"),
+  ROOT_PATH = path.join(__dirname, "..", "..", "..");
 
 const manager = require("../../../modules/manager");
 
-const command = [
+/* const command = [
   "-y",
   "-i",
   "/home/shlee/out_4M.mp4",
@@ -18,24 +21,24 @@ const command = [
   "-b:v",
   "100k",
   "/home/shlee/out_4.ts",
-];
+]; */
 // 회사 용
 
-/* const command = [
+const command = [
   "-y",
   "-i",
-  "/C: /Users/flejd/Documents/amuzlab_study/study/4.mp4",
+  `${ROOT_PATH}/4.mp4`,
   "-s",
-  "300*300",
+  "1080*720",
   "-c:v",
   "libx264",
   "-c:a",
   "aac",
   "-b:v",
-  "100k",
-  "/home/shlee/out_4.ts",
+  "1000k",
+  `${ROOT_PATH}/out4.mp4`,
 ];
-// 로컬 용 */
+// 로컬 용
 
 class transcoderWorker1 extends require("@amuzlab/worker").Worker {
   constructor() {
@@ -43,6 +46,11 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
   }
 
   exec() {
+    console.log(
+      manager.ffmpegContainer.readyQueue,
+      manager.ffmpegContainer.execQueue
+    );
+
     const job = this.job;
     this.emit("exec", job, this);
 

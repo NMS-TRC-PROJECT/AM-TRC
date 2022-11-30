@@ -3,10 +3,12 @@ const trc = require("../../../modules/request/transcoder/trans_coding");
 const ffmpegLogger = require("../../logger/ffmpegLogger");
 const systemLogger = require("../../logger/systemLogger");
 
+const manager = require("../../../modules/manager");
+
 const command = [
   "-y",
   "-i",
-  "/home/shlee/out_3.ts",
+  "/home/shlee/out_4M.mp4",
   "-s",
   "300*300",
   "-c:v",

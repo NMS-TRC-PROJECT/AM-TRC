@@ -28,6 +28,11 @@ Object.defineProperties(exports, {
         checkExistenceJob(job.id, job.serviceType);
         manager.exec(job);
 
+        console.log(
+          manager.ffmpegContainer.readyQueue,
+          manager.ffmpegContainer.execQueue.length
+        );
+
         systemLogger.systemInfo(
           `[FFMPEG_TRC] Job execution success. (job.id: %s, job.serviceType: %s)`,
           `${JSON.stringify(job.id)}`,
@@ -57,6 +62,7 @@ Object.defineProperties(exports, {
           `${JSON.stringify(job[0].data.id)}`,
           `${JSON.stringify(job[0].data.serviceType)}`
         );
+
         return res.status(200).json({ resultCode: 200, errorString: "" });
       } catch (error) {
         systemLogger.systemError(

@@ -1,6 +1,6 @@
 const worker = require("@amuzlab/worker"),
   workerMapper = require("./WorkerMapper"),
-  systemLogger = require("../modules/logger/systemLogger"),
+  logger = require("../modules/logger"),
   trc = require("../modules/request/transcoder/trans_coding");
 
 class Manager extends require("events") {
@@ -13,21 +13,21 @@ class Manager extends require("events") {
           maxWorkerCount: 2,
         })
           .on("workerExec", (job, worker, workerContainer) => {
-            systemLogger.systemInfo(
+            logger.systemLogger.log.systemDebug(
               "[workerContainer] workerExec (job.id: %s, job.serviceType: %s)",
               `${JSON.stringify(job.id)}`,
               `${JSON.stringify(job.serviceType)}`
             );
           })
           .on("workerEnd", (job, worker, workerContainer) => {
-            systemLogger.systemInfo(
+            logger.systemLogger.log.systemDebug(
               "[workerContainer] workerEnd (job.id: %s, job.serviceType: %s)",
               `${JSON.stringify(job.id)}`,
               `${JSON.stringify(job.serviceType)}`
             );
           })
           .on("workerStop", (job, worker, workerContainer) => {
-            systemLogger.systemInfo(
+            logger.systemLogger.log.systemDebug(
               "[workerContainer] workerStop (job.id: %s, job.serviceType: %s)",
               `${JSON.stringify(job.id)}`,
               `${JSON.stringify(job.serviceType)}`
@@ -35,7 +35,7 @@ class Manager extends require("events") {
           })
           .on("workerError", (error, job, worker, workerContainer) => {
             if (error) {
-              systemLogger.systemError(
+              logger.systemLogger.log.systemError(
                 "[workerContainer] workerError (job: %s, error : %s)",
                 `${JSON.stringify(job)}`,
                 `${JSON.stringify(error, Object.getOwnPropertyNames(error))}`
@@ -44,7 +44,7 @@ class Manager extends require("events") {
           })
           .on("execError", (error, job, workerContainer) => {
             if (error) {
-              systemLogger.systemError(
+              logger.systemLogger.log.systemError(
                 "[workerContainer] execError (job: %s, error : %s)",
                 `${JSON.stringify(job)}`,
                 `${JSON.stringify(error, Object.getOwnPropertyNames(error))}`
@@ -59,26 +59,26 @@ class Manager extends require("events") {
           maxWorkerCount: 2,
         })
           .on("workerExec", (job, worker, workerContainer) => {
-            systemLogger.systemInfo(
+            logger.systemLogger.log.systemDebug(
               "[workerContainer] workerExec (job.id: %s)",
               `${JSON.stringify(job.id)}`
             );
           })
           .on("workerEnd", (job, worker, workerContainer) => {
-            systemLogger.systemInfo(
+            logger.systemLogger.log.systemDebug(
               "[workerContainer] workerEnd (job.id: %s)",
               `${JSON.stringify(job.id)}`
             );
           })
           .on("workerStop", (job, worker, workerContainer) => {
-            systemLogger.systemInfo(
+            logger.systemLogger.log.systemDebug(
               "[workerContainer] workerStop (job.id: %s)",
               `${JSON.stringify(job.id)}`
             );
           })
           .on("workerError", (error, job, worker, workerContainer) => {
             if (error) {
-              systemLogger.systemError(
+              logger.systemLogger.log.systemError(
                 "[workerContainer] workerError (job: %s, error : %s)",
                 `${JSON.stringify(job)}`,
                 `${JSON.stringify(error, Object.getOwnPropertyNames(error))}`
@@ -87,7 +87,7 @@ class Manager extends require("events") {
           })
           .on("execError", (error, job, workerContainer) => {
             if (error) {
-              systemLogger.systemError(
+              logger.systemLogger.log.systemError(
                 "[workerContainer] execError (job: %s, error : %s)",
                 `${JSON.stringify(job)}`,
                 `${JSON.stringify(error, Object.getOwnPropertyNames(error))}`

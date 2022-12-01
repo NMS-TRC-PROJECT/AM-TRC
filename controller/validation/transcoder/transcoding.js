@@ -1,8 +1,6 @@
 const req_modules = require("../../../modules/request");
 const manager = require("../../../modules/manager");
-
-const ffmpegLogger = require("../../../modules/logger/ffmpegLogger");
-const systemLogger = require("../../../modules/logger/systemLogger");
+const logger = require("../../../modules/logger");
 
 Object.defineProperties(exports, {
   spawn: {
@@ -43,9 +41,11 @@ Object.defineProperties(exports, {
         res.locals.command = command;
         next();
       } else {
-        const error = new Error(err_msg.join(" and "));
+        const error = new Error(
+          `ffmpeg command error : ${err_msg.join(" and ")}`
+        );
         error.status = 400;
-        ffmpegLogger.ffmpegError(error.stack, `command : ${command.join(" ")}`);
+
         next(error);
       }
     },

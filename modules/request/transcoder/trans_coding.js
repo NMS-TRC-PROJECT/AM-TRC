@@ -2,11 +2,11 @@ const { spawn } = require("child_process");
 const { exec } = require("child_process");
 
 require("dotenv").config();
-// const ffmpeg = process.env.FFMPEG_OFFICE;
-// const PWD = process.env.OFFICE_PWD_PATH;
+const ffmpeg = process.env.FFMPEG_OFFICE;
+const PWD = process.env.OFFICE_PWD_PATH;
 
-const ffmpeg = process.env.FFMPEG_LOCAL;
-const PWD = process.env.LOCAL_PWD_PATH;
+// const ffmpeg = process.env.FFMPEG_LOCAL;
+// const PWD = process.env.LOCAL_PWD_PATH;
 
 Object.defineProperties(exports, {
   encoding_command: {
@@ -29,8 +29,8 @@ Object.defineProperties(exports, {
 
       return ts;
       /*   return new Promise((resolve, reject) => {
-        ffmpegLogger.ffmpegInfo("command", command.join(" "));
-        systemLogger.systemInfo("ffmpeg_command", command.join(" "));
+        logger.ffmpegLogger.log.ffmpegInfo("command", command.join(" "));
+        logger.systemLogger.log.systemInfo("ffmpeg_command", command.join(" "));
 
         const ts = spawn(ffmpeg, command);
         ts.stderr.on("data", (data) => {
@@ -38,8 +38,8 @@ Object.defineProperties(exports, {
         });
 
         ts.on("close", (code) => {
-          ffmpegLogger.ffmpegInfo("child process exited with code", code);
-          systemLogger.systemInfo("child process exited with code", code);
+          logger.ffmpegLogger.log.ffmpegInfo("child process exited with code", code);
+          logger.systemLogger.log.systemInfo("child process exited with code", code);
           resolve({ end: "end" });
         });
 

@@ -4,7 +4,7 @@ const works = require("@amuzlab/worker"),
   workerMapper = require("../../../modules/WorkerMapper"),
   manager = require("../../../modules/manager");
 
-const systemLogger = require("../../../modules/logger/systemLogger");
+const logger = require("../../../modules/logger");
 
 require("dotenv").config();
 
@@ -28,7 +28,7 @@ Object.defineProperties(exports, {
         checkExistenceJob(job.id, job.serviceType);
         manager.exec(job);
 
-        systemLogger.systemInfo(
+        logger.systemLogger.log.systemInfo(
           `[FFMPEG_TRC] Job execution success. (job.id: %s, job.serviceType: %s)`,
           `${JSON.stringify(job.id)}`,
           `${JSON.stringify(job.serviceType)}`
@@ -36,7 +36,7 @@ Object.defineProperties(exports, {
 
         return res.status(200).json({ resultCode: 200, errorString: "" });
       } catch (error) {
-        systemLogger.systemError(
+        logger.systemLogger.log.systemError(
           `[FFMPEG_TRC] Job execution failed. (job: %s, error: %s)`,
           JSON.stringify(job),
           JSON.stringify(error, Object.getOwnPropertyNames(error))
@@ -52,7 +52,7 @@ Object.defineProperties(exports, {
     value: (transactionId, req, res, next) => {
       try {
         const job = manager.cancel(Number(transactionId));
-        systemLogger.systemInfo(
+        logger.systemLogger.log.systemInfo(
           `[FFMPEG_TRC] Job cancellation success. (job.id: %s, job.serviceType: %s)`,
           `${JSON.stringify(job[0].data.id)}`,
           `${JSON.stringify(job[0].data.serviceType)}`
@@ -60,7 +60,7 @@ Object.defineProperties(exports, {
 
         return res.status(200).json({ resultCode: 200, errorString: "" });
       } catch (error) {
-        systemLogger.systemError(
+        logger.systemLogger.log.systemError(
           `[FFMPEG_TRC] Job cancellation failed. (transactionId: %s, error: %s)`,
           JSON.stringify(transactionId),
           JSON.stringify(error, Object.getOwnPropertyNames(error))

@@ -1,7 +1,7 @@
 const worker = require("@amuzlab/worker"),
   workerMapper = require("./WorkerMapper"),
   logger = require("../modules/logger"),
-  trc = require("../modules/request/transcoder/trans_coding");
+  trc = require("./transcoder/trans_coding");
 
 class Manager extends require("events") {
   constructor() {

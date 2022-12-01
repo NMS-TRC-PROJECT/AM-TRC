@@ -1,6 +1,6 @@
 Object.defineProperties(exports, {
-  request: {
+  command: {
     enumerable: true,
-    value: require("./transcoder"),
+    value: require("./command"),
   },
 });

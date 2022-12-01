@@ -1,4 +1,4 @@
-const trc = require("../../../modules/request/transcoder/trans_coding");
+const transcoder = require("../../transcoder");
 
 const logger = require("../../logger"),
   ffmpegLogger = logger.ffmpegLogger.log,
@@ -6,54 +6,19 @@ const logger = require("../../logger"),
   systemLogger = logger.systemLogger.log,
   Choicer = logger.loggerChoicer;
 
-const path = require("path"),
-  ROOT_PATH = path.join(__dirname, "..", "..", "..");
-
-const manager = require("../../../modules/manager");
-
-/* const command = [
-  "-y",
-  "-i",
-  "/home/shlee/out_3.ts",
-  "-s",
-  "300*300",
-  "-c:v",
-  "libx264",
-  "-c:a",
-  "aac",
-  "-b:v",
-  "100k",
-  "/home/shlee/out_4.ts",
-]; */
-
-// 회사 용
-
-const command = [
-  "-y",
-  "-i",
-  `${ROOT_PATH}/4.mp4`,
-  "-s",
-  "1080*720",
-  "-c:v",
-  "libx264",
-  "-c:a",
-  "aac",
-  "-b:v",
-  "1000k",
-  `${ROOT_PATH}/out4.mp4`,
-];
-// 로컬 용
-
 class transcoderWorker1 extends require("@amuzlab/worker").Worker {
   constructor() {
     super();
   }
 
   exec() {
-    const job = this.job;
-    this.emit("exec", job, this);
-    const ts = trc.trc_spawn(command, job.data.id);
+    const job = this.job,
+      command = transcoder.commandBuilder.command.encoding(job.data.spec);
+
+    const ts = transcoder.TRC.spawn(command);
     job.data.childPsId = ts.pid;
+
+    this.emit("exec", job, this);
 
     switch (true) {
       case Choicer.ffmpegLogger && Choicer.ffmpegLogger2:

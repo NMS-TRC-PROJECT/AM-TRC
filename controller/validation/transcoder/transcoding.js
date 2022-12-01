@@ -1,60 +1,30 @@
-const req_modules = require("../../../modules/request");
+const transcoder = require("../../../modules/transcoder");
 const manager = require("../../../modules/manager");
 const logger = require("../../../modules/logger");
 
 Object.defineProperties(exports, {
   spawn: {
     enumerable: true,
+    value: (req, res, next) => {},
+  },
+
+  execJob: {
+    enumerable: true,
     value: (req, res, next) => {
+      let { body } = req;
       const { input, width, height, video_c, audio_c, Kbps_v, output } =
-        req.body;
-      const err_msg = [];
-      let resolution = "";
+        body.spec;
 
-      if (!input) err_msg.push("check source file");
-
-      if (width || height) {
-        if (typeof width !== "number" || typeof height !== "number") {
-          err_msg.push("check resolution");
-        } else {
-          resolution = `${width}*${height}`;
-        }
-      }
-
-      if (video_c && typeof video_c !== "string") err_msg.push("check c:v");
-      if (video_c && typeof audio_c !== "string") err_msg.push("check c:a");
-
-      if (typeof Kbps_v !== "number") err_msg.push("check b");
-
-      if (!output) err_msg.push("check out file");
-
-      const command = req_modules.request.transcoder.encoding_command(
+      transcoder.commandBuilder.command.validation(
         input,
-        resolution,
+        width,
+        height,
         video_c,
         audio_c,
         Kbps_v,
         output
       );
 
-      if (err_msg.length === 0) {
-        res.locals.command = command;
-        next();
-      } else {
-        const error = new Error(
-          `ffmpeg command error : ${err_msg.join(" and ")}`
-        );
-        error.status = 400;
-
-        next(error);
-      }
-    },
-  },
-
-  execJob: {
-    enumerable: true,
-    value: (req, res, next) => {
-      const { body } = req;
       next(body);
     },
   },

@@ -1,4 +1,4 @@
-const req_modules = require("../../../modules/request");
+const transcoder = require("../../../modules/transcoder");
 const works = require("@amuzlab/worker"),
   { Job, Worker, WorkerContainer, error, map } = works,
   workerMapper = require("../../../modules/WorkerMapper"),
@@ -13,7 +13,7 @@ Object.defineProperties(exports, {
     enumerable: true,
     value: (req, res) => {
       const { command } = res.locals;
-      req_modules.request.transcoder.spawn(command);
+      transcoder.TRC.spawn(command);
 
       return res.status(201).json({ resultCode: 201, errorString: "" });
     },

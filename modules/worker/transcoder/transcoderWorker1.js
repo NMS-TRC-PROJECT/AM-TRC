@@ -11,7 +11,7 @@ const path = require("path"),
 
 const manager = require("../../../modules/manager");
 
-const command = [
+/* const command = [
   "-y",
   "-i",
   "/home/shlee/out_3.ts",
@@ -24,11 +24,11 @@ const command = [
   "-b:v",
   "100k",
   "/home/shlee/out_4.ts",
-];
+]; */
 
 // 회사 용
 
-/* const command = [
+const command = [
   "-y",
   "-i",
   `${ROOT_PATH}/4.mp4`,
@@ -41,7 +41,7 @@ const command = [
   "-b:v",
   "1000k",
   `${ROOT_PATH}/out4.mp4`,
-]; */
+];
 // 로컬 용
 
 class transcoderWorker1 extends require("@amuzlab/worker").Worker {

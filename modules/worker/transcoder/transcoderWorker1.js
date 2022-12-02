@@ -20,9 +20,14 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
 
     this.emit("exec", job, this);
 
+    console.log("start", Choicer);
+
     switch (true) {
       case Choicer.ffmpegLogger && Choicer.ffmpegLogger2:
+        console.log(1);
+        console.log(Choicer);
         Choicer.ffmpegLogger = false;
+        console.log(Choicer);
 
         commandLog(command);
 
@@ -32,13 +37,21 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
 
         ts.on("close", (code) => {
           closeLog(code);
+          console.log("close", code);
+          console.log(Choicer);
           Choicer.ffmpegLogger = true;
+          console.log(Choicer);
           if (code === 0) this.emit("end", job, this);
+          if (code !== 255) this.emit("error", `error code ${code}`, job);
         });
         break;
 
       case Choicer.ffmpegLogger === false && Choicer.ffmpegLogger2 === true:
+        console.log(2);
+        console.log(Choicer);
         Choicer.ffmpegLogger2 = false;
+        console.log(Choicer);
+
         commandLog2(command);
 
         ts.stderr.on("data", (data) => {
@@ -47,13 +60,21 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
 
         ts.on("close", (code) => {
           closeLog2(code);
+          console.log("close", code);
+          console.log(Choicer);
           Choicer.ffmpegLogger2 = true;
+          console.log(Choicer);
+
           if (code === 0) this.emit("end", job, this);
+          if (code !== 255) this.emit("error", `error code ${code}`, job);
         });
         break;
 
       case Choicer.ffmpegLogger === true && Choicer.ffmpegLogger2 === false:
+        console.log(3);
+        console.log(Choicer);
         Choicer.ffmpegLogger = false;
+        console.log(Choicer);
 
         commandLog(command);
 
@@ -63,8 +84,13 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
 
         ts.on("close", (code) => {
           closeLog(code);
+          console.log("close", code);
+          console.log(Choicer);
           Choicer.ffmpegLogger = true;
+          console.log(Choicer);
+
           if (code === 0) this.emit("end", job, this);
+          if (code !== 255) this.emit("error", `error code ${code}`, job);
         });
         break;
     }

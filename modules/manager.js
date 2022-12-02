@@ -111,10 +111,18 @@ class Manager extends require("events") {
     return result;
   }
 
-  cancel(id) {
+  async cancel(id) {
     let result;
-    result = this.ffmpegContainer.cancel(id);
-    trc.psKill(result[0].data.childPsId);
+    let psId = this.ffmpegContainer.execQueue.find((j) => j.id === id).data
+      .childPsId;
+
+    await trc.psKill(psId);
+
+    // worker에서 이벤트 내용에 맞게 cancel 처리 시키기
+    setTimeout(() => {
+      result = this.ffmpegContainer.cancel(id);
+      console.log("qwe");
+    }, 1000);
 
     return result;
     // 서비스 타입에 맞춰서 cancel하는 기능 추가하기

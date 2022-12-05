@@ -25,7 +25,7 @@ Object.defineProperties(exports, {
       let job;
       try {
         job = createJob(body);
-        checkExistenceJob(job.id, job.serviceType);
+        checkExecJob(job.id, job.serviceType);
         manager.exec(job);
 
         logger.systemLogger.log.systemInfo(
@@ -34,7 +34,7 @@ Object.defineProperties(exports, {
           `${JSON.stringify(job.serviceType)}`
         );
 
-        return res.status(200).json({ resultCode: 200, errorString: "" });
+        return res.status(201).json({ resultCode: 201, errorString: "" });
       } catch (error) {
         logger.systemLogger.log.systemError(
           `[FFMPEG_TRC] Job execution failed. (job: %s, error: %s)`,
@@ -42,7 +42,7 @@ Object.defineProperties(exports, {
           JSON.stringify(error, Object.getOwnPropertyNames(error))
         );
 
-        return res.status(400).json({ resultCode: 400, errorString: "" });
+        return res.status(500).json({ resultCode: 500, errorString: "" });
       }
     },
   },
@@ -51,13 +51,14 @@ Object.defineProperties(exports, {
     enumerable: true,
     value: (transactionId, req, res, next) => {
       try {
-        const job = manager.cancel(Number(transactionId));
-        logger.systemLogger.log.systemInfo(
+        checkCancelJob(transactionId); // 로직 다시 체크하기
+        manager.psKill(Number(transactionId));
+
+        /* logger.systemLogger.log.systemInfo(
           `[FFMPEG_TRC] Job cancellation success. (job.id: %s, job.serviceType: %s)`,
           `${JSON.stringify(job[0].data.id)}`,
           `${JSON.stringify(job[0].data.serviceType)}`
-        );
-
+        ); */
         return res.status(200).json({ resultCode: 200, errorString: "" });
       } catch (error) {
         logger.systemLogger.log.systemError(
@@ -65,7 +66,7 @@ Object.defineProperties(exports, {
           JSON.stringify(transactionId),
           JSON.stringify(error, Object.getOwnPropertyNames(error))
         );
-        return res.status(400).json({ resultCode: 400, errorString: "" });
+        return res.status(500).json({ resultCode: 500, errorString: "" });
       }
     },
   },
@@ -80,7 +81,7 @@ function createJob(obj) {
   return job;
 }
 
-function checkExistenceJob(id, serviceType) {
+function checkExecJob(id, serviceType) {
   let queue;
 
   switch (serviceType) {
@@ -99,5 +100,13 @@ function checkExistenceJob(id, serviceType) {
 
   if (queue.some((j) => j.data.id === id)) {
     throw new Error("This ID is already in use.");
+  }
+}
+
+function checkCancelJob(id) {
+  let queue = [...manager.ffmpegContainer2.execQueue];
+
+  if (!queue.some((j) => j.data.id === id)) {
+    throw new Error("This ID is not found");
   }
 }

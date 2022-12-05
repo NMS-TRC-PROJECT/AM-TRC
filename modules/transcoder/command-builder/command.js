@@ -26,20 +26,15 @@ Object.defineProperties(exports, {
       const err_msg = [];
 
       if (!input) err_msg.push("check source file");
-
       if (width || height) {
         if (typeof width !== "number" || typeof height !== "number") {
           err_msg.push("check resolution");
         }
       }
-
       if (video_c && typeof video_c !== "string") err_msg.push("check c:v");
       if (video_c && typeof audio_c !== "string") err_msg.push("check c:a");
-
       if (typeof Kbps_v !== "number") err_msg.push("check b");
-
       if (!output) err_msg.push("check out file");
-
       if (err_msg.length !== 0) {
         const error = new Error(
           `ffmpeg command error : ${err_msg.join(" and ")}`

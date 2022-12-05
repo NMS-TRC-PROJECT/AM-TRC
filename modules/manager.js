@@ -20,6 +20,7 @@ class Manager extends require("events") {
             );
           })
           .on("workerEnd", (job, worker, workerContainer) => {
+            if (job.code === 255) return this.cancel(job.id);
             logger.systemLogger.log.systemDebug(
               "[workerContainer] workerEnd (job.id: %s, job.serviceType: %s)",
               `${JSON.stringify(job.id)}`,
@@ -111,19 +112,15 @@ class Manager extends require("events") {
     return result;
   }
 
+  psKill(id) {
+    trc.psKill(
+      this.ffmpegContainer.execQueue.find((j) => j.id === id).data.childPsId
+    );
+    // 제대로 프로세스 멈췄는지 확인하는 기능 만들기
+  }
+
   cancel(id) {
-    let result;
-    let psId = this.ffmpegContainer.execQueue.find((j) => j.id === id).data
-      .childPsId;
-
-    trc.psKill(psId); // 제대로 프로세스 멈췄는지 확인하기
-
-    setTimeout(() => {
-      result = this.ffmpegContainer.cancel(id);
-      console.log("qwe");
-    }, 1000);
-
-    return result;
+    return this.ffmpegContainer.cancel(id);
 
     // worker에서 이벤트 내용에 맞게 cancel 처리 시키기
     // 서비스 타입에 맞춰서 cancel하는 기능 추가하기

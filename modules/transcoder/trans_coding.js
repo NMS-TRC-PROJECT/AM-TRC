@@ -2,9 +2,8 @@ const { spawn } = require("child_process");
 const { exec } = require("child_process");
 
 require("dotenv").config();
-// const ffmpeg = process.env.FFMPEG_OFFICE;
-
-const ffmpeg = process.env.FFMPEG_LOCAL;
+const ffmpeg = process.env.FFMPEG_OFFICE;
+// const ffmpeg = process.env.FFMPEG_LOCAL;
 
 Object.defineProperties(exports, {
   spawn: {

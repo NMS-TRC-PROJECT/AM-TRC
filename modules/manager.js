@@ -11,6 +11,7 @@ class Manager extends require("events") {
         enumerable: true,
         value: new worker.WorkerContainer({
           maxWorkerCount: 2,
+          autoGenerateJobId: true,
         })
           .on("workerExec", (job, worker, workerContainer) => {
             logger.systemLogger.log.systemDebug(
@@ -20,7 +21,7 @@ class Manager extends require("events") {
             );
           })
           .on("workerEnd", (job, worker, workerContainer) => {
-            if (job.code === 255) return this.cancel(job.id);
+            if (job.code === 255) return this.cancel(job.id); // 나중에 cancel 하나로만 ps kill 되게 리팩토링
             logger.systemLogger.log.systemDebug(
               "[workerContainer] workerEnd (job.id: %s, job.serviceType: %s)",
               `${JSON.stringify(job.id)}`,

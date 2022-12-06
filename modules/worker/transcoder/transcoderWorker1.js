@@ -26,6 +26,7 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
         commandLog(command);
 
         ts.stderr.on("data", (data) => {
+          console.log(`${data}`);
           stderrLog(data);
         });
 
@@ -76,6 +77,9 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
         break;
     }
   }
+
+  // swicth 부분에서 job 상태 업데이트 정보 계속 보내주기
+  // 에러처리도 같이 -1,0,1 .. 등등
 }
 
 function commandLog(command) {

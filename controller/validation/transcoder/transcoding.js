@@ -37,4 +37,11 @@ Object.defineProperties(exports, {
       next(transactionId);
     },
   },
+
+  getStatus: {
+    enumerable: true,
+    value: async (req, res, next) => {
+      next();
+    },
+  },
 });

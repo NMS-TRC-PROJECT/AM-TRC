@@ -2,6 +2,12 @@ const express = require("express"),
   router = express.Router(),
   controller = require("../../controller");
 
+router.get(
+  "/status",
+  controller.validation.transcoder.modules.getStatus,
+  controller.controller.transcoder.modules.getStatus
+);
+
 router.post(
   "/spawn",
   controller.validation.transcoder.modules.spawn,

@@ -1,7 +1,7 @@
 require("dotenv").config();
 
 const path = require("path"),
-  ROOT_PATH = path.join(__dirname, "..", "..", "..");
+  ROOT_PATH = path.join(__dirname, "..", "..", "..", "..", "NAS_study");
 
 Object.defineProperties(exports, {
   encoding: {
@@ -10,12 +10,12 @@ Object.defineProperties(exports, {
       const { input, width, height, video_c, audio_c, Kbps_v, output } = spec;
       let resolution = `${width}*${height}`;
 
-      let command = ["-y", "-i", `${ROOT_PATH}/${input}`];
+      let command = ["-y", "-i", `${ROOT_PATH}/input/${input}`];
       if (resolution) command.push("-s", `${resolution}`);
       if (video_c) command.push("-c:v", `${video_c}`);
       if (audio_c) command.push("-c:a", `${audio_c}`);
       if (Kbps_v) command.push("-b:v", `${Kbps_v}k`);
-      command.push(`${ROOT_PATH}/${output}`);
+      command.push(`${ROOT_PATH}/output/${output}`);
       return command;
     },
   },

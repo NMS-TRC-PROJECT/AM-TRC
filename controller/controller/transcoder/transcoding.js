@@ -23,18 +23,24 @@ Object.defineProperties(exports, {
     enumerable: true,
     value: (body, req, res, next) => {
       let job;
+      let id;
       try {
         job = createJob(body);
         checkExecJob(job.id, job.serviceType);
-        manager.exec(job);
+        id = manager.exec(job);
 
         logger.systemLogger.log.systemInfo(
           `[FFMPEG_TRC] Job execution success. (job.id: %s, job.serviceType: %s)`,
           `${JSON.stringify(job.id)}`,
           `${JSON.stringify(job.serviceType)}`
         );
-
-        return res.status(201).json({ resultCode: 201, errorString: "" });
+        return res.status(201).json({
+          resultCode: 201,
+          result: {
+            id,
+            errorString: "",
+          },
+        });
       } catch (error) {
         logger.systemLogger.log.systemError(
           `[FFMPEG_TRC] Job execution failed. (job: %s, error: %s)`,
@@ -51,8 +57,9 @@ Object.defineProperties(exports, {
     enumerable: true,
     value: (transactionId, req, res, next) => {
       try {
-        checkCancelJob(transactionId); // 로직 다시 체크하기
-        manager.psKill(Number(transactionId));
+        checkCancelJob(transactionId);
+        // manager.psKill(Number(transactionId));
+        manager.psKill(transactionId);
 
         /* logger.systemLogger.log.systemInfo(
           `[FFMPEG_TRC] Job cancellation success. (job.id: %s, job.serviceType: %s)`,
@@ -70,20 +77,40 @@ Object.defineProperties(exports, {
       }
     },
   },
+
+  getStatus: {
+    enumerable: true,
+    value: async (req, res, next) => {
+      try {
+        res.sendStatus(200);
+        logger.systemLogger.log.systemInfo(
+          `[FFMPEG-TRC] get status success.`,
+          200
+        );
+      } catch (error) {
+        res.sendStatus(500);
+        logger.systemLogger.log.systemError(
+          `[FFMPEG-TRC] get status failed. (error: %s)`,
+          error
+        );
+      }
+    },
+  },
 });
 
 function createJob(obj) {
   let job = new Job();
   job.id = obj.id;
   job.data = obj;
-  job.serviceType = obj.serviceType;
+  job.serviceType = obj.serviceType
+    ? obj.serviceType
+    : workerMapper.SERVICE_TYPE.FFMPEG_TRC_1;
 
   return job;
 }
 
 function checkExecJob(id, serviceType) {
   let queue;
-
   switch (serviceType) {
     case workerMapper.SERVICE_TYPE.FFMPEG_TRC_2:
       queue = [
@@ -97,16 +124,15 @@ function checkExecJob(id, serviceType) {
         ...manager.ffmpegContainer.execQueue,
       ];
   }
-
-  if (queue.some((j) => j.data.id === id)) {
+  if (queue.some((j) => j.id === id)) {
     throw new Error("This ID is already in use.");
   }
 }
 
 function checkCancelJob(id) {
-  let queue = [...manager.ffmpegContainer2.execQueue];
-
-  if (!queue.some((j) => j.data.id === id)) {
+  // 나중에 서비스 타입에 맞춰서 돌아가게 수정하기
+  let queue = [...manager.ffmpegContainer.execQueue];
+  if (queue.find((j) => j.id === id) === undefined) {
     throw new Error("This ID is not found");
   }
 }

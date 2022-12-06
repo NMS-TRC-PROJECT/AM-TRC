@@ -26,7 +26,7 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
         commandLog(command);
 
         ts.stderr.on("data", (data) => {
-          console.log(`${data}`);
+          console.log(typeof data);
           stderrLog(data);
         });
 

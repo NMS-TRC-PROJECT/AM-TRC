@@ -13,12 +13,14 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
     this.trcStatus2 = {};
     this.jobStateUpdate = () => {
       return setInterval(() => {
+        // post 요청 보내면 됨
         console.log(this.trcStatus, 1);
       }, 3000);
     };
     this.jobStateUpdate2 = () => {
       return setInterval(() => {
         console.log(this.trcStatus2, 2);
+        //post 요청 보내면 됨
       }, 3000);
     };
   }
@@ -36,8 +38,6 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
         Choicer.ffmpegLogger = false;
         commandLog(command);
 
-        console.log(this.trcStatus, "start");
-
         ts.stderr.on("data", (data) => {
           this.trcStateReqExp(data);
           stderrLog(data);
@@ -51,7 +51,6 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
 
           clearInterval(intervalId);
 
-          console.log(this.trcStatus, "end");
           this.trcStatus = {};
 
           if (code === 0) this.emit("end", job, this);
@@ -63,8 +62,6 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
       case Choicer.ffmpegLogger === false && Choicer.ffmpegLogger2 === true:
         Choicer.ffmpegLogger2 = false;
         commandLog2(command);
-
-        console.log(this.trcStatus2, "start2");
 
         ts.stderr.on("data", (data) => {
           this.trcStateReqExp2(data);
@@ -78,7 +75,6 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
           Choicer.ffmpegLogger2 = true;
           clearInterval(intervalId2);
 
-          console.log(this.trcStatus2, "end2");
           this.trcStatus2 = {};
 
           if (code === 0) this.emit("end", job, this);
@@ -90,8 +86,6 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
       case Choicer.ffmpegLogger === true && Choicer.ffmpegLogger2 === false:
         Choicer.ffmpegLogger = false;
         commandLog(command);
-
-        console.log(this.trcStatus, "start");
 
         ts.stderr.on("data", (data) => {
           this.trcStateReqExp(data);
@@ -105,7 +99,6 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
           Choicer.ffmpegLogger = true;
           clearInterval(intervalId3);
 
-          console.log(this.trcStatus, "end");
           this.trcStatus = {};
 
           if (code === 0) this.emit("end", job, this);

@@ -1,8 +1,8 @@
 require("dotenv").config();
 
 const path = require("path"),
-  //   ROOT_PATH = path.join(__dirname, "..", "..", "..", "..", "NAS_study");
-  ROOT_PATH = path.join(__dirname, "..", "..", "..", "..");
+  ROOT_PATH = path.join(__dirname, "..", "..", "..", "..", "NAS_study");
+// ROOT_PATH = path.join(__dirname, "..", "..", "..", "..");
 
 Object.defineProperties(exports, {
   encoding: {

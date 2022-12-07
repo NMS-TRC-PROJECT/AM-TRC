@@ -19,7 +19,7 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
     };
     this.jobStateUpdate2 = () => {
       return setInterval(() => {
-        console.log(this.trcStatus2, 2);
+        console.log(this.trcStatus2, 02);
         //post 요청 보내면 됨
       }, 3000);
     };

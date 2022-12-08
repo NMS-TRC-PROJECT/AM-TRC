@@ -3,30 +3,23 @@ const manager = require("../../../modules/manager");
 const logger = require("../../../modules/logger");
 
 Object.defineProperties(exports, {
-  spawn: {
-    enumerable: true,
-    value: (req, res, next) => {},
-  },
-
   execJob: {
     enumerable: true,
     value: (req, res, next) => {
-      let { body } = req;
+      try {
+        let { body } = req;
+        // transcoder.commandBuilder.command.validation(body);
 
-      const { input, width, height, video_c, audio_c, Kbps_v, output } =
-        body.spec;
-
-      transcoder.commandBuilder.command.validation(
-        input,
-        width,
-        height,
-        video_c,
-        audio_c,
-        Kbps_v,
-        output
-      );
-
-      next(body);
+        next(body);
+      } catch (error) {
+        logger.systemLogger.log.systemError(
+          `[FFMPEG_TRC] Invalid Preset (error: %s)`,
+          JSON.stringify(error, Object.getOwnPropertyNames(error))
+        );
+        return res
+          .status(400)
+          .json({ resultCode: 400, errorString: error.message });
+      }
     },
   },
 

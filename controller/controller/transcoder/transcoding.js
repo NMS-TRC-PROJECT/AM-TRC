@@ -9,22 +9,14 @@ const logger = require("../../../modules/logger");
 require("dotenv").config();
 
 Object.defineProperties(exports, {
-  spawn: {
-    enumerable: true,
-    value: (req, res) => {
-      const { command } = res.locals;
-      transcoder.TRC.spawn(command);
-
-      return res.status(201).json({ resultCode: 201, errorString: "" });
-    },
-  },
-
   execJob: {
     enumerable: true,
     value: (body, req, res, next) => {
       let job;
       let id;
       try {
+        console.log("hi");
+        return res.json({ test: "test" });
         job = createJob(body);
         checkExecJob(job.id, job.serviceType);
         id = manager.exec(job);
@@ -48,7 +40,9 @@ Object.defineProperties(exports, {
           JSON.stringify(error, Object.getOwnPropertyNames(error))
         );
 
-        return res.status(500).json({ resultCode: 500, errorString: "" });
+        return res
+          .status(500)
+          .json({ resultCode: 500, errorString: error.message });
       }
     },
   },
@@ -73,7 +67,9 @@ Object.defineProperties(exports, {
           JSON.stringify(transactionId),
           JSON.stringify(error, Object.getOwnPropertyNames(error))
         );
-        return res.status(500).json({ resultCode: 500, errorString: "" });
+        return res
+          .status(500)
+          .json({ resultCode: 500, errorString: error.message });
       }
     },
   },
@@ -100,7 +96,7 @@ Object.defineProperties(exports, {
 
 function createJob(obj) {
   let job = new Job();
-  job.id = obj.id;
+  job.id = obj.transactionId;
   job.data = obj;
   job.serviceType = obj.serviceType
     ? obj.serviceType

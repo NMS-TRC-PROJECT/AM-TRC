@@ -36,22 +36,18 @@ class Manager extends require("events") {
             );
           })
           .on("workerError", (error, job, worker, workerContainer) => {
-            if (error) {
-              logger.systemLogger.log.systemError(
-                "[workerContainer] workerError (job: %s, error : %s)",
-                `${JSON.stringify(job)}`,
-                `${JSON.stringify(error, Object.getOwnPropertyNames(error))}`
-              );
-            }
+            logger.systemLogger.log.systemError(
+              "[workerContainer] workerError (job: %s, error : %s)",
+              `${JSON.stringify(job)}`,
+              `${JSON.stringify(error, Object.getOwnPropertyNames(error))}`
+            );
           })
           .on("execError", (error, job, workerContainer) => {
-            if (error) {
-              logger.systemLogger.log.systemError(
-                "[workerContainer] execError (job: %s, error : %s)",
-                `${JSON.stringify(job)}`,
-                `${JSON.stringify(error, Object.getOwnPropertyNames(error))}`
-              );
-            }
+            logger.systemLogger.log.systemError(
+              "[workerContainer] execError (job: %s, error : %s)",
+              `${JSON.stringify(job)}`,
+              `${JSON.stringify(error, Object.getOwnPropertyNames(error))}`
+            );
           }),
       },
 

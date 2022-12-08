@@ -1,7 +1,7 @@
 require("dotenv").config();
 
 const path = require("path"),
-  ROOT_PATH = path.join(__dirname, "..", "..", "..", "..", "NAS_study");
+  ROOT_PATH = path.join(__dirname, "..", "..", "..", "..", "mnt");
 // ROOT_PATH = path.join(__dirname, "..", "..", "..", "..");
 
 Object.defineProperties(exports, {
@@ -23,27 +23,57 @@ Object.defineProperties(exports, {
 
   validation: {
     enumerable: true,
-    value: (input, width, height, video_c, audio_c, Kbps_v, output) => {
-      const err_msg = [];
+    value: (obj) => {
+      let outputs = obj.outputs,
+        video = outputs.video,
+        audio = outputs.audio,
+        basic = obj.basic,
+        err_msg = [];
+      try {
+        if (outputType[outputs.outputType] === "FILE") {
+          if (!container[outputs.container]) err_msg.push("check container");
+        } else err_msg.push("still getting ready");
 
-      if (!input) err_msg.push("check source file");
-      if (width || height) {
-        if (typeof width !== "number" || typeof height !== "number") {
-          err_msg.push("check resolution");
+        if (!basic.filename) err_msg.push("check filename");
+        if (!basic.outputFolder) err_msg.push("check outputFolder");
+        if (video.resolutionWidth || video.resolutionHeight) {
+          if (
+            typeof video.resolutionWidth !== "number" ||
+            typeof video.resolutionHeight !== "number"
+          ) {
+            err_msg.push("check resolution");
+          }
         }
-      }
-      if (video_c && typeof video_c !== "string") err_msg.push("check c:v");
-      if (video_c && typeof audio_c !== "string") err_msg.push("check c:a");
-      if (typeof Kbps_v !== "number") err_msg.push("check b");
-      if (!output) err_msg.push("check out file");
-      if (err_msg.length !== 0) {
-        const error = new Error(
-          `ffmpeg command error : ${err_msg.join(" and ")}`
-        );
-        error.status = 400;
+        if (video.codec && typeof video.codec !== "string") {
+          err_msg.push("check c:v");
+        }
+        if (audio.codec && typeof audio.codec !== "string")
+          err_msg.push("check c:a");
 
-        next(error);
+        // if (typeof Kbps_v !== "number") err_msg.push("check b");
+        if (err_msg.length !== 0) {
+          const error = err_msg.join(" and ");
+          error.status = 400;
+          throw new Error(error);
+        }
+      } catch (error) {
+        throw new Error(error);
       }
     },
   },
 });
+
+const container = {
+  "MPEG-TS": "ts",
+  "MPEG-4": "mp4",
+  MP3: "mp3",
+  IMAGE: "jpg",
+};
+
+const outputType = {
+  // UDP: "",
+  // HLS: "",
+  // ASI_CARD: "",
+  // DASH: "",
+  FILE: "FILE",
+};

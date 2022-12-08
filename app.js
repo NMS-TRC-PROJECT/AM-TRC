@@ -32,7 +32,7 @@ app.use(
 
 app.use((err, req, res, next) => {
   logger.systemLogger.log.systemError("server error (err : %s)", err.stack);
-  return res.json({
+  return res.status(500).json({
     success: false,
     message: err.message,
     result: err,

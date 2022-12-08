@@ -11,15 +11,15 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
     super();
     this.trcStatus = {};
     this.trcStatus2 = {};
-    this.jobStateUpdate = () => {
+    this.postTrcStatus = () => {
       return setInterval(() => {
         // post 요청 보내면 됨
         console.log(this.trcStatus, 1);
       }, 3000);
     };
-    this.jobStateUpdate2 = () => {
+    this.postTrcStatus2 = () => {
       return setInterval(() => {
-        console.log(this.trcStatus2, 02);
+        console.log(this.trcStatus2, 2);
         //post 요청 보내면 됨
       }, 3000);
     };
@@ -32,24 +32,24 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
     job.data.childPsId = ts.pid;
 
     this.emit("exec", job, this);
-
     switch (true) {
       case Choicer.ffmpegLogger && Choicer.ffmpegLogger2:
         Choicer.ffmpegLogger = false;
         commandLog(command);
 
         ts.stderr.on("data", (data) => {
-          this.trcStateReqExp(data);
+          this.setTrcState(data);
           stderrLog(data);
         });
 
-        let intervalId = this.jobStateUpdate();
+        let intervalId = this.postTrcStatus();
 
         ts.on("close", (code) => {
           closeLog(code);
           Choicer.ffmpegLogger = true;
 
           clearInterval(intervalId);
+          console.log(this.trcStatus, 1);
 
           this.trcStatus = {};
 
@@ -64,16 +64,17 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
         commandLog2(command);
 
         ts.stderr.on("data", (data) => {
-          this.trcStateReqExp2(data);
+          this.setTrcState2(data);
           stderrLog2(data);
         });
 
-        let intervalId2 = this.jobStateUpdate2();
+        let intervalId2 = this.postTrcStatus2();
 
         ts.on("close", (code) => {
           closeLog2(code);
           Choicer.ffmpegLogger2 = true;
           clearInterval(intervalId2);
+          console.log(this.trcStatus2, 2);
 
           this.trcStatus2 = {};
 
@@ -88,16 +89,17 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
         commandLog(command);
 
         ts.stderr.on("data", (data) => {
-          this.trcStateReqExp(data);
+          this.setTrcState(data);
           stderrLog(data);
         });
 
-        let intervalId3 = this.jobStateUpdate();
+        let intervalId3 = this.postTrcStatus();
 
         ts.on("close", (code) => {
           closeLog(code);
           Choicer.ffmpegLogger = true;
           clearInterval(intervalId3);
+          console.log(this.trcStatus, 3);
 
           this.trcStatus = {};
 
@@ -109,7 +111,7 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
     }
   }
 
-  trcStateReqExp(data) {
+  setTrcState(data) {
     let frame = String(data).match(/^frame/)?.[0]; // stderr에서 frame만 있는 경우를 찾기 위해 사용
     let trcInfo = String(data).match(/(\d*\.?\d+)/g);
     if (frame) {
@@ -123,7 +125,7 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
     }
   }
 
-  trcStateReqExp2(data) {
+  setTrcState2(data) {
     let frame = String(data).match(/^frame/)?.[0];
     let trcInfo = String(data).match(/(\d*\.?\d+)/g);
     if (frame) {
@@ -136,7 +138,7 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
       this.trcStatus2.speed = `${trcInfo[8]}x`;
     }
   }
-  // trcStateReqExp 간소화 필요
+  // setTrcState 간소화 필요
 
   // swicth 부분에서 job 상태 업데이트 정보 계속 보내주기
   // 에러처리도 같이 -1,0,1 .. 등등

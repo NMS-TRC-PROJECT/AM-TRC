@@ -15,8 +15,8 @@ Object.defineProperties(exports, {
       let job;
       let id;
       try {
-        console.log("hi");
-        return res.json({ test: "test" });
+        // console.log("hi");
+        // return res.json({ test: "test" });
         job = createJob(body);
         checkExecJob(job.id, job.serviceType);
         id = manager.exec(job);

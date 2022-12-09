@@ -1,58 +1,81 @@
 require("dotenv").config();
 
 const path = require("path"),
-  ROOT_PATH = path.join(__dirname, "..", "..", "..", "..", "mnt");
+  ROOT_PATH = path.join(__dirname, "..", "..", "..", "..");
 // ROOT_PATH = path.join(__dirname, "..", "..", "..", "..");
 
 Object.defineProperties(exports, {
   encoding: {
     enumerable: true,
-    value: (spec) => {
-      const { input, width, height, video_c, audio_c, Kbps_v, output } = spec;
-      let resolution = `${width}*${height}`;
+    value: (obj) => {
+      console.log(obj);
+      const {
+        outputs: { container, outputType, video, audio },
+        basic: { filename, outputFolder },
+      } = obj;
+      const resolution = `${video.resolutionWidth}*${video.resolutionHeight}`;
 
-      let command = ["-y", "-i", `${ROOT_PATH}/input/${input}`];
+      const command = ["-y", "-i", `${ROOT_PATH}/input/${filename}`];
+      if (video.codec) command.push("-c:v", `${video.codec}`);
+      if (video.quality) command.push("-q:v", `${video.quality}`);
+      if (video.bitrate) command.push("-vb", `${video.bitrate}k`);
+      if (video.framerate) command.push("-vframes", `${video.framerate}`);
       if (resolution) command.push("-s", `${resolution}`);
-      if (video_c) command.push("-c:v", `${video_c}`);
-      if (audio_c) command.push("-c:a", `${audio_c}`);
-      if (Kbps_v) command.push("-b:v", `${Kbps_v}k`);
-      command.push(`${ROOT_PATH}/output/${output}`);
+      if (audio.codec) command.push("-c:a", `${audio.codec}`);
+      if (audio.bitrate) command.push("-ab", `${audio.bitrate}k`);
+      command.push(`${ROOT_PATH}/output/${filename}.${container}`);
+      console.log(command);
       return command;
     },
   },
-
+  // -vframes (number) 비디오 프레임 수 지정,
+  // -vb 비디오 비트레이트 설정, / 실수 (단위 k로 하기 기본 1000k)
+  // -q:v 고정 품질 척도(VBR), 낮을 수록 좋음 / 정수? ... 일단 실수
+  // -ab 오디오 비트레이트 설정 / 정수? ..일단 실수 (단위 k로 하기 기본 64k)
   validation: {
     enumerable: true,
     value: (obj) => {
-      let outputs = obj.outputs,
-        video = outputs.video,
-        audio = outputs.audio,
-        basic = obj.basic,
-        err_msg = [];
-      try {
-        if (outputType[outputs.outputType] === "FILE") {
-          if (!container[outputs.container]) err_msg.push("check container");
-        } else err_msg.push("still getting ready");
+      const {
+        outputs: { container, outputType, video, audio },
+        basic: { filename, outputFolder },
+      } = obj;
 
-        if (!basic.filename) err_msg.push("check filename");
-        if (!basic.outputFolder) err_msg.push("check outputFolder");
+      err_msg = [];
+      try {
+        if (outputTypes[outputType] === "FILE") {
+          if (!containers[container]) err_msg.push("check container");
+        } else err_msg.push("NO FILE");
+
+        if (!filename) err_msg.push("check filename");
+        if (!outputFolder) err_msg.push("check outputFolder");
+
+        if (video.codec && !videoCodecs[video.codec]) err_msg.push("check c:v");
+
+        if (video.quality && typeof video.quality !== "number") {
+          err_msg.push("check q");
+        }
+        if (video.bitrate && typeof video.bitrate !== "number") {
+          err_msg.push("check vb");
+        }
+        if (video.framerate && typeof video.framerate !== "number") {
+          err_msg.push("check vframes");
+        }
         if (video.resolutionWidth || video.resolutionHeight) {
           if (
             typeof video.resolutionWidth !== "number" ||
             typeof video.resolutionHeight !== "number"
-          ) {
-            err_msg.push("check resolution");
-          }
+          )
+            err_msg.push("check s");
         }
-        if (video.codec && typeof video.codec !== "string") {
-          err_msg.push("check c:v");
-        }
-        if (audio.codec && typeof audio.codec !== "string")
-          err_msg.push("check c:a");
 
-        // if (typeof Kbps_v !== "number") err_msg.push("check b");
+        if (audio.codec && !audioCodecs[audio.codec]) err_msg.push("check c:a");
+
+        if (audio.bitrate && typeof audio.bitrate !== "number") {
+          err_msg.push("check ab");
+        }
+
         if (err_msg.length !== 0) {
-          const error = err_msg.join(" and ");
+          const error = err_msg.join(", ");
           error.status = 400;
           throw new Error(error);
         }
@@ -62,18 +85,30 @@ Object.defineProperties(exports, {
     },
   },
 });
+// vaildatain 모듈화 해보기, 정규식으로 바꾸기, 확장성 썩었는데...
 
-const container = {
+const containers = {
   "MPEG-TS": "ts",
   "MPEG-4": "mp4",
-  MP3: "mp3",
-  IMAGE: "jpg",
+  // MP3: "mp3",
+  // IMAGE: "jpg",
 };
 
-const outputType = {
+const outputTypes = {
   // UDP: "",
   // HLS: "",
   // ASI_CARD: "",
   // DASH: "",
   FILE: "FILE",
+};
+
+const videoCodecs = {
+  COPY: "copy",
+  "H.264": "h264",
+  "H.265": "hevc",
+};
+const audioCodecs = {
+  COPY: "copy",
+  "AAC-LC": "aac",
+  // "AAC-LC": "libfdk_aac",
 };

@@ -27,7 +27,7 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
 
   exec() {
     const job = this.job,
-      command = transcoder.commandBuilder.command.encoding(job.data.spec);
+      command = transcoder.commandBuilder.command.encoding(job.data);
     const ts = transcoder.TRC.spawn(command);
     job.data.childPsId = ts.pid;
 

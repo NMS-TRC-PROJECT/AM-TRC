@@ -2,33 +2,31 @@ require("dotenv").config();
 
 const path = require("path"),
   ROOT_PATH = path.join(__dirname, "..", "..", "..", "..");
-// ROOT_PATH = path.join(__dirname, "..", "..", "..", "..");
 
 Object.defineProperties(exports, {
   encoding: {
     enumerable: true,
     value: (obj) => {
-      console.log(obj);
       const {
         outputs: { container, outputType, video, audio },
-        basic: { filename, outputFolder },
+        basic: { filename, outputFolder, sourcePath },
       } = obj;
       const resolution = `${video.resolutionWidth}*${video.resolutionHeight}`;
 
-      const command = ["-y", "-i", `${ROOT_PATH}/input/${filename}`];
-      if (video.codec) command.push("-c:v", `${video.codec}`);
+      const command = ["-y", "-i", `${ROOT_PATH}${sourcePath}/${filename}`];
+      if (video.codec) command.push("-c:v", `${videoCodecs[video.codec]}`);
       if (video.quality) command.push("-q:v", `${video.quality}`);
       if (video.bitrate) command.push("-vb", `${video.bitrate}k`);
-      if (video.framerate) command.push("-vframes", `${video.framerate}`);
+      if (video.framerate) command.push("-r", `${video.framerate}`);
       if (resolution) command.push("-s", `${resolution}`);
-      if (audio.codec) command.push("-c:a", `${audio.codec}`);
+      if (audio.codec) command.push("-c:a", `${audioCodecs[audio.codec]}`);
       if (audio.bitrate) command.push("-ab", `${audio.bitrate}k`);
-      command.push(`${ROOT_PATH}/output/${filename}.${container}`);
-      console.log(command);
+      command.push(`${ROOT_PATH}${outputFolder}.${containers[container]}`);
       return command;
     },
   },
-  // -vframes (number) 비디오 프레임 수 지정,
+  // -vframes (number) 비디오 프레임 수 지정, 이건 최대 몇개 프레임 쓸 것인지 조정하는 옵션.. fbs에 대한 옵션을 넣어야 됨
+  // -r 프레임 레이트 조정 fbs
   // -vb 비디오 비트레이트 설정, / 실수 (단위 k로 하기 기본 1000k)
   // -q:v 고정 품질 척도(VBR), 낮을 수록 좋음 / 정수? ... 일단 실수
   // -ab 오디오 비트레이트 설정 / 정수? ..일단 실수 (단위 k로 하기 기본 64k)
@@ -37,7 +35,7 @@ Object.defineProperties(exports, {
     value: (obj) => {
       const {
         outputs: { container, outputType, video, audio },
-        basic: { filename, outputFolder },
+        basic: { filename, sourcePath, outputFolder },
       } = obj;
 
       err_msg = [];
@@ -48,6 +46,7 @@ Object.defineProperties(exports, {
 
         if (!filename) err_msg.push("check filename");
         if (!outputFolder) err_msg.push("check outputFolder");
+        if (!sourcePath) err_msg.push("check sourcePath");
 
         if (video.codec && !videoCodecs[video.codec]) err_msg.push("check c:v");
 

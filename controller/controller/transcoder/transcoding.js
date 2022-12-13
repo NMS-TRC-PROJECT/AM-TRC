@@ -15,11 +15,10 @@ Object.defineProperties(exports, {
       let job;
       let id;
       try {
-        // console.log("hi");
-        // return res.json({ test: "test" });
         job = createJob(body);
         checkExecJob(job.id, job.serviceType);
-        id = manager.exec(job);
+        id = manager.exec(job); // 에러처리 다시하기
+        manager.updateTrcStatus(job);
 
         logger.systemLogger.log.systemInfo(
           `[FFMPEG_TRC] Job execution success. (job.id: %s, job.serviceType: %s)`,

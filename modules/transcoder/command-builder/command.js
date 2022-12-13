@@ -9,11 +9,15 @@ Object.defineProperties(exports, {
     value: (obj) => {
       const {
         outputs: { container, outputType, video, audio },
-        basic: { filename, outputFolder, sourcePath },
+        basic: { inputFilename, inputFolder, outputFolder },
       } = obj;
       const resolution = `${video.resolutionWidth}*${video.resolutionHeight}`;
 
-      const command = ["-y", "-i", `${ROOT_PATH}${sourcePath}/${filename}`];
+      const command = [
+        "-y",
+        "-i",
+        `${ROOT_PATH}${inputFolder}/${inputFilename}`,
+      ];
       if (video.codec) command.push("-c:v", `${videoCodecs[video.codec]}`);
       if (video.quality) command.push("-q:v", `${video.quality}`);
       if (video.bitrate) command.push("-vb", `${video.bitrate}k`);
@@ -35,7 +39,7 @@ Object.defineProperties(exports, {
     value: (obj) => {
       const {
         outputs: { container, outputType, video, audio },
-        basic: { filename, sourcePath, outputFolder },
+        basic: { inputFilename, inputFolder, outputFolder },
       } = obj;
 
       err_msg = [];
@@ -44,9 +48,9 @@ Object.defineProperties(exports, {
           if (!containers[container]) err_msg.push("check container");
         } else err_msg.push("NO FILE");
 
-        if (!filename) err_msg.push("check filename");
+        if (!inputFilename) err_msg.push("check inputFilename");
+        if (!inputFolder) err_msg.push("check inputFolder");
         if (!outputFolder) err_msg.push("check outputFolder");
-        if (!sourcePath) err_msg.push("check sourcePath");
 
         if (video.codec && !videoCodecs[video.codec]) err_msg.push("check c:v");
 

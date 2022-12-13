@@ -38,7 +38,7 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
         commandLog(command);
 
         ts.stderr.on("data", (data) => {
-          this.setTrcState(data);
+          this.setTrcStatus(data);
           stderrLog(data);
         });
 
@@ -64,7 +64,7 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
         commandLog2(command);
 
         ts.stderr.on("data", (data) => {
-          this.setTrcState2(data);
+          this.setTrcStatus2(data);
           stderrLog2(data);
         });
 
@@ -89,7 +89,7 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
         commandLog(command);
 
         ts.stderr.on("data", (data) => {
-          this.setTrcState(data);
+          this.setTrcStatus(data);
           stderrLog(data);
         });
 
@@ -111,7 +111,7 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
     }
   }
 
-  setTrcState(data) {
+  setTrcStatus(data) {
     let frame = String(data).match(/^frame/)?.[0]; // stderr에서 frame만 있는 경우를 찾기 위해 사용
     let trcInfo = String(data).match(/(\d*\.?\d+)/g);
     if (frame) {
@@ -125,7 +125,7 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
     }
   }
 
-  setTrcState2(data) {
+  setTrcStatus2(data) {
     let frame = String(data).match(/^frame/)?.[0];
     let trcInfo = String(data).match(/(\d*\.?\d+)/g);
     if (frame) {
@@ -138,7 +138,7 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
       this.trcStatus2.speed = `${trcInfo[8]}x`;
     }
   }
-  // setTrcState 간소화 필요
+  // setTrcStatus 간소화 필요
 
   // swicth 부분에서 job 상태 업데이트 정보 계속 보내주기
   // 에러처리도 같이 -1,0,1 .. 등등

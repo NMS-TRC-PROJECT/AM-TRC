@@ -123,6 +123,23 @@ class Manager extends require("events") {
     // 서비스 타입에 맞춰서 cancel하는 기능 추가하기
   }
 
+  updateTrcStatus(job) {
+    console.log(job.id);
+    let status = {
+      transactionId: job.id,
+      status: 2,
+      transcodes: [
+        {
+          presetCode: "",
+          outputFilename: job.data.basic.outputFilename,
+        },
+      ],
+    };
+
+    // 포스트 요청 보내기
+    console.log(status);
+  }
+
   get workerContainer() {
     return this.ffmpegContainer;
   }

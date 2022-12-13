@@ -28,16 +28,15 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
 
   async exec() {
     const job = this.job,
-      command = transcoder.commandBuilder.command.encoding(job.data);
-    const ts = transcoder.TRC.spawn(command);
+      command = transcoder.commandBuilder.command.encoding(job.data),
+      ts = transcoder.TRC.spawn(command),
+      duration = await this.getFileDuration(
+        job.data.basic.inputFolder,
+        job.data.basic.inputFilename
+      ); // 12-15 여기부터 시작하면 됨.. 총 frame 개수 구하면 됨
+
     job.data.childPsId = ts.pid;
     // this.checkFile() 기능 개발 예정
-    let duration = await this.getFileDuration(
-      job.data.basic.inputFolder,
-      job.data.basic.inputFilename
-    );
-
-    console.log(duration);
 
     this.emit("exec", job, this);
 
@@ -47,7 +46,7 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
         commandLog(command);
 
         ts.stderr.on("data", (data) => {
-          this.setTrcStatus(data);
+          this.setTrcStatus(data, duration);
           stderrLog(data);
         });
 
@@ -125,16 +124,14 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
     // let duration;
     return String(
       await transcoder.TRC.getFileDuration(`${inputFolder}/${inputFilename}`)
-    ).match(
-      /(0[1-9]|1[0-9]|2[0-4]):(0[1-9]|[1-5][0-9]):(0[1-9]|[1-5][0-9]).(0[1-9]|[1-5][0-9])/g
-    );
+    ).match(/([0-9][0-9]):([0-5][0-9]):([0-5][0-9]).([0-9][0-9]),/g)?.[0];
   }
 
-  setTrcStatus(data) {
-    let frame = String(data).match(/^frame/)?.[0]; // stderr에서 log 정보가 있는 경우를 찾기 위해 사용
-    let trcInfo = String(data).match(/(\d*\.?\d+)/g);
-    let dup = String(data).match(/dup/)?.[0];
-    let drop = String(data).match(/drop/)?.[0];
+  setTrcStatus(data, totalFrame) {
+    let frame = String(data).match(/^frame/)?.[0], // stderr에서 log 정보가 있는 경우를 찾기 위해 사용
+      trcInfo = String(data).match(/(\d*\.?\d+)/g),
+      dup = String(data).match(/dup/)?.[0],
+      drop = String(data).match(/drop/)?.[0];
 
     if (frame) {
       this.trcStatus.frame = trcInfo[0];
@@ -145,6 +142,7 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
         this.trcStatus.speed = `${trcInfo[8]}x`;
       }
       this.trcStatus.status = 2;
+      //   this.trcStatus.percentage;
     }
   }
 
@@ -153,7 +151,6 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
     let trcInfo = String(data).match(/(\d*\.?\d+)/g);
     let dup = String(data).match(/dup/)?.[0];
     let drop = String(data).match(/drop/)?.[0];
-
     if (frame) {
       this.trcStatus2.frame = trcInfo[0];
       this.trcStatus2.bitrate = `${trcInfo[7]}kbits/s`;

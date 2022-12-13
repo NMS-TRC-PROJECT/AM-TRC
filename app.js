@@ -17,7 +17,7 @@ app.use(express.urlencoded({ extended: false }));
 app.set("port", process.env.PORT || 3000);
 
 app.use(
-  "/routes",
+  "/",
   (req, res, next) => {
     logger.systemLogger.log.systemInfo(
       "server info %s",

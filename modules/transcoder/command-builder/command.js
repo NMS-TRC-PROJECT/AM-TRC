@@ -22,7 +22,7 @@ Object.defineProperties(exports, {
       if (video.quality) command.push("-q:v", `${video.quality}`);
       if (video.bitrate) command.push("-vb", `${video.bitrate}k`);
       if (video.framerate) command.push("-r", `${video.framerate}`);
-      if (resolution) command.push("-s", `${resolution}`);
+      if (video.resolutionWidth) command.push("-s", `${resolution}`);
       if (audio.codec) command.push("-c:a", `${audioCodecs[audio.codec]}`);
       if (audio.bitrate) command.push("-ab", `${audio.bitrate}k`);
       command.push(`${ROOT_PATH}${outputFolder}.${containers[container]}`);

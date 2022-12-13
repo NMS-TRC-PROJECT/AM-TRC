@@ -9,13 +9,13 @@ router.get(
 );
 
 router.post(
-  "/execJob",
+  "/",
   controller.validation.transcoder.modules.execJob,
   controller.controller.transcoder.modules.execJob
 );
 
 router.delete(
-  "/cancelJob/:transactionId",
+  "/:transactionId",
   controller.validation.transcoder.modules.cancelJob,
   controller.controller.transcoder.modules.cancelJob
 );

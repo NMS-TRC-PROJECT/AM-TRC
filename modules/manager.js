@@ -124,7 +124,6 @@ class Manager extends require("events") {
   }
 
   updateTrcStatus(job) {
-    console.log(job.id);
     let status = {
       transactionId: job.id,
       status: 2,
@@ -136,8 +135,7 @@ class Manager extends require("events") {
       ],
     };
 
-    // 포스트 요청 보내기
-    console.log(status);
+    // 포스트 요청 보내는 기능 만들기
   }
 
   get workerContainer() {

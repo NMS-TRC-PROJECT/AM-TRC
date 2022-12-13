@@ -9,29 +9,38 @@ const logger = require("../../logger"),
 class transcoderWorker1 extends require("@amuzlab/worker").Worker {
   constructor() {
     super();
+    this.duration = null;
     this.trcStatus = {};
     this.trcStatus2 = {};
     this.postTrcStatus = () => {
       return setInterval(() => {
         // post 요청 보내면 됨
         console.log(this.trcStatus, 1);
-      }, 3000);
+      }, 5000);
     };
     this.postTrcStatus2 = () => {
       return setInterval(() => {
         console.log(this.trcStatus2, 2);
         //post 요청 보내면 됨
-      }, 3000);
+      }, 5000);
     };
   }
 
-  exec() {
+  async exec() {
     const job = this.job,
       command = transcoder.commandBuilder.command.encoding(job.data);
     const ts = transcoder.TRC.spawn(command);
     job.data.childPsId = ts.pid;
+    // this.checkFile() 기능 개발 예정
+    let duration = await this.getFileDuration(
+      job.data.basic.inputFolder,
+      job.data.basic.inputFilename
+    );
+
+    console.log(duration);
 
     this.emit("exec", job, this);
+
     switch (true) {
       case Choicer.ffmpegLogger && Choicer.ffmpegLogger2:
         Choicer.ffmpegLogger = false;
@@ -111,31 +120,49 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
     }
   }
 
+  async getFileDuration(inputFolder, inputFilename) {
+    // let isDuration;
+    // let duration;
+    return String(
+      await transcoder.TRC.getFileDuration(`${inputFolder}/${inputFilename}`)
+    ).match(
+      /(0[1-9]|1[0-9]|2[0-4]):(0[1-9]|[1-5][0-9]):(0[1-9]|[1-5][0-9]).(0[1-9]|[1-5][0-9])/g
+    );
+  }
+
   setTrcStatus(data) {
-    let frame = String(data).match(/^frame/)?.[0]; // stderr에서 frame만 있는 경우를 찾기 위해 사용
+    let frame = String(data).match(/^frame/)?.[0]; // stderr에서 log 정보가 있는 경우를 찾기 위해 사용
     let trcInfo = String(data).match(/(\d*\.?\d+)/g);
+    let dup = String(data).match(/dup/)?.[0];
+    let drop = String(data).match(/drop/)?.[0];
+
     if (frame) {
       this.trcStatus.frame = trcInfo[0];
-      this.trcStatus.fbs = trcInfo[1];
-      this.trcStatus.q = trcInfo[2];
-      this.trcStatus.size = `${trcInfo[3]}KB`;
-      this.trcStatus.time = `${trcInfo[4]}:${trcInfo[5]}:${trcInfo[6]}`;
       this.trcStatus.bitrate = `${trcInfo[7]}kbits/s`;
-      this.trcStatus.speed = `${trcInfo[8]}x`;
+      if (dup && drop) {
+        this.trcStatus.speed = `${trcInfo[10]}x`;
+      } else {
+        this.trcStatus.speed = `${trcInfo[8]}x`;
+      }
+      this.trcStatus.status = 2;
     }
   }
 
   setTrcStatus2(data) {
     let frame = String(data).match(/^frame/)?.[0];
     let trcInfo = String(data).match(/(\d*\.?\d+)/g);
+    let dup = String(data).match(/dup/)?.[0];
+    let drop = String(data).match(/drop/)?.[0];
+
     if (frame) {
       this.trcStatus2.frame = trcInfo[0];
-      this.trcStatus2.fbs = trcInfo[1];
-      this.trcStatus2.q = trcInfo[2];
-      this.trcStatus2.size = `${trcInfo[3]}KB`;
-      this.trcStatus2.time = `${trcInfo[4]}:${trcInfo[5]}:${trcInfo[6]}`;
       this.trcStatus2.bitrate = `${trcInfo[7]}kbits/s`;
-      this.trcStatus2.speed = `${trcInfo[8]}x`;
+      if (dup && drop) {
+        this.trcStatus2.speed = `${trcInfo[10]}x`;
+      } else {
+        this.trcStatus2.speed = `${trcInfo[8]}x`;
+      }
+      this.trcStatus2.status = 2;
     }
   }
   // setTrcStatus 간소화 필요
@@ -174,3 +201,9 @@ function closeLog2(code) {
 // 확장성이 떨어짐, 고도화 작업 해보기
 
 module.exports = transcoderWorker1;
+
+/* 
+1. 케이스 별로 나눈 것 하나로 만들고 
+2. 기능들 따로 분리하기 (실행은 실행만, 로깅은 로깅만)
+3. 하나의 함수에 하나에 기능만 넣기
+4. 내 생각으로는 init trc에 기능을 추가하면 될 듯..? */

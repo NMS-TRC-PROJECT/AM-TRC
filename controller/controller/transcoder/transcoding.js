@@ -17,15 +17,15 @@ Object.defineProperties(exports, {
       try {
         job = createJob(body);
         checkExecJob(job.id, job.serviceType);
-        id = manager.exec(job); // 에러처리 다시하기
         manager.updateTrcStatus(job);
+        id = manager.exec(job); // 에러처리 다시하기
 
         logger.systemLogger.log.systemInfo(
           `[FFMPEG_TRC] Job execution success. (job.id: %s, job.serviceType: %s)`,
           `${JSON.stringify(job.id)}`,
           `${JSON.stringify(job.serviceType)}`
         );
-        return res.status(201).json({
+        return res.status(200).json({
           resultCode: 201,
           result: {
             id,
@@ -40,8 +40,8 @@ Object.defineProperties(exports, {
         );
 
         return res
-          .status(500)
-          .json({ resultCode: 500, errorString: error.message });
+          .status(200)
+          .json({ resultCode: 400, errorString: error.message });
       }
     },
   },
@@ -67,8 +67,8 @@ Object.defineProperties(exports, {
           JSON.stringify(error, Object.getOwnPropertyNames(error))
         );
         return res
-          .status(500)
-          .json({ resultCode: 500, errorString: error.message });
+          .status(200)
+          .json({ resultCode: 400, errorString: error.message });
       }
     },
   },

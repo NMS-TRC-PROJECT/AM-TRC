@@ -200,64 +200,101 @@ function closeLog2(code) {
 class transcoderWorker1 extends require("@amuzlab/worker").Worker {
   constructor() {
     super();
-    this.duration = null;
+    Object.defineProperties(this, {
+      _trc: {
+        writable: true,
+        value: null,
+      },
+      _trcLogger: {
+        writable: true,
+        value: null,
+      },
+      _choiceLogger: {
+        writable: true,
+        value: null,
+      },
+    });
+    /*     this.duration = null;
     this.trcStatus = {};
     this.postTrcStatus = () => {
       return setInterval(() => {
         // post 요청 보내면 됨
         console.log(this.trcStatus, 1);
       }, 5000);
-    };
+    }; */
   }
 
-  async exec() {
-    const job = this.job,
-      command = transcoder.commandBuilder.command.encoding(job.data),
-      ts = transcoder.TRC.spawn(command),
-      totalFrame = await this.totalFrame(job);
-
-    job.data.childPsId = ts.pid;
-    // this.checkFile() 기능 개발 예정 - systeminfo 사용해서 해보기
-
-    this.emit("exec", job, this);
-
-    Choicer.ffmpegLogger = false;
-    commandLog(command);
-
-    ts.stderr.on("data", (data) => {
-      this.setTrcStatus(data, totalFrame);
-      stderrLog(data);
-    });
-
-    let intervalId = this.postTrcStatus();
-
-    ts.on("close", (code) => {
-      closeLog(code);
-      Choicer.ffmpegLogger = true;
-
-      clearInterval(intervalId);
-      this.trcStatus.percentage = `${100}%`;
-      this.trcStatus.status = 0;
-      console.log(this.trcStatus, 1);
-
-      this.trcStatus = {};
-
-      if (code === 0) this.emit("end", job, this);
-      else if (code === 255) (job.code = 255), this.emit("end", job);
-      else this.emit("error", `error code ${code}`, job);
-    });
+  get job() {
+    return super.job;
   }
 
-  async totalFrame(job) {
+  set job(job) {
+    switch (true) {
+      case Choicer.ffmpegLogger && Choicer.ffmpegLogger2:
+        this._trcLogger = ffmpegLogger;
+        this._choiceLogger = Choicer.ffmpegLogger = false;
+        break;
+      case Choicer.ffmpegLogger === false && Choicer.ffmpegLogger2 === true:
+        this._trcLogger = ffmpegLogger2;
+        this._choiceLogger = Choicer.ffmpegLogger2 = false;
+        break;
+      case Choicer.ffmpegLogger === true && Choicer.ffmpegLogger2 === false:
+        this._trcLogger = ffmpegLogger;
+        this._choiceLogger = Choicer.ffmpegLogger = false;
+        break;
+    }
+
+    super.job = job;
+    //  나중에 반복문 같은거로 로거 정하는 로직 만들기, 더 줄이는 방향으로
+  }
+
+  exec() {
+    super.exec();
+    try {
+      this.initTRC();
+      this._trc.stderr.on("data", (data) => {
+        this._trcLogger.ffmpegInfo("stderr", data);
+      });
+
+      this._trc.on("close", (code) => {
+        systemLogger.systemDebug("child process exited with code", code);
+        this._trcLogger.ffmpegDebug("child process exited with code", code);
+        this._choiceLogger = true;
+
+        if (code === 0) this.emit("end", this.job, this);
+        else if (code === 255)
+          (this.job.code = 255), this.emit("end", this.job);
+        else this.emit("error", `error code ${code}`, this.job);
+      });
+    } catch (error) {
+      // workerErrorHandleling작성하기
+      console.log(error);
+    }
+  }
+
+  async initTRC() {
+    const command = transcoder.commandBuilder.command.encoding(this.job.data);
+
+    this._trc = transcoder.TRC.spawn(command);
+    this.job.data.childPsId = this._trc.pid;
+
+    systemLogger.systemDebug("ffmpeg_command", command.join(" "));
+  }
+
+  async totalFrame() {
     return (
       Math.round(
         await transcoder.TRC.getFileDuration(
-          `${job.data.basic.inputFolder}/${job.data.basic.inputFilename}`
+          `${this.job.data.basic.inputFolder}/${this.job.data.basic.inputFilename}`
         )
       ) *
-      (job.data.outputs.video.framerate ? job.data.outputs.video.framerate : 30)
+      (this.job.data.outputs.video.framerate
+        ? this.job.data.outputs.video.framerate
+        : 30)
     );
   }
+
+  /*   
 
   setTrcStatus(data, totalFrame) {
     let frame = String(data).match(/^frame/)?.[0], // stderr에서 log 정보가 있는 경우를 찾기 위해 사용
@@ -278,38 +315,13 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
         2
       )}%`;
     }
-  }
+  } */
 
   // setTrcStatus 간소화 필요
 
   // swicth 부분에서 job 상태 업데이트 정보 계속 보내주기
   // 에러처리도 같이 -1,0,1 .. 등등
   // 더 간단하게 만들어보기
-}
-
-function commandLog(command) {
-  ffmpegLogger.ffmpegDebug("command", command.join(" "));
-  systemLogger.systemDebug("ffmpeg_command", command.join(" "));
-}
-function commandLog2(command) {
-  ffmpegLogger2.ffmpegDebug("command", command.join(" "));
-  systemLogger.systemDebug("ffmpeg_command", command.join(" "));
-}
-
-function stderrLog(data) {
-  ffmpegLogger.ffmpegInfo("stderr", data);
-}
-function stderrLog2(data) {
-  ffmpegLogger2.ffmpegInfo("stderr", data);
-}
-
-function closeLog(code) {
-  ffmpegLogger.ffmpegDebug("child process exited with code", code);
-  systemLogger.systemDebug("child process exited with code", code);
-}
-function closeLog2(code) {
-  ffmpegLogger2.ffmpegDebug("child process exited with code", code);
-  systemLogger.systemDebug("child process exited with code", code);
 }
 
 // 이게 최선의 방법인가??... 안좋은듯...

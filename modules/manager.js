@@ -106,6 +106,7 @@ class Manager extends require("events") {
       default:
         result = this.ffmpegContainer.exec(job);
     }
+
     return result;
   }
 

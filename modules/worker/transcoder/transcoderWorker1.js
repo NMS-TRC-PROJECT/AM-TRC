@@ -6,10 +6,9 @@ const logger = require("../../logger"),
   systemLogger = logger.systemLogger.log,
   Choicer = logger.loggerChoicer;
 
-class transcoderWorker1 extends require("@amuzlab/worker").Worker {
+/* class transcoderWorker1 extends require("@amuzlab/worker").Worker {
   constructor() {
     super();
-    this.duration = null;
     this.trcStatus = {};
     this.trcStatus2 = {};
     this.postTrcStatus = () => {
@@ -166,6 +165,121 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
       this.trcStatus2.status = 2;
     }
   }
+  // setTrcStatus 간소화 필요
+
+  // swicth 부분에서 job 상태 업데이트 정보 계속 보내주기
+  // 에러처리도 같이 -1,0,1 .. 등등
+  // 더 간단하게 만들어보기
+}
+
+function commandLog(command) {
+  ffmpegLogger.ffmpegDebug("command", command.join(" "));
+  systemLogger.systemDebug("ffmpeg_command", command.join(" "));
+}
+function commandLog2(command) {
+  ffmpegLogger2.ffmpegDebug("command", command.join(" "));
+  systemLogger.systemDebug("ffmpeg_command", command.join(" "));
+}
+
+function stderrLog(data) {
+  ffmpegLogger.ffmpegInfo("stderr", data);
+}
+function stderrLog2(data) {
+  ffmpegLogger2.ffmpegInfo("stderr", data);
+}
+
+function closeLog(code) {
+  ffmpegLogger.ffmpegDebug("child process exited with code", code);
+  systemLogger.systemDebug("child process exited with code", code);
+}
+function closeLog2(code) {
+  ffmpegLogger2.ffmpegDebug("child process exited with code", code);
+  systemLogger.systemDebug("child process exited with code", code);
+} */
+
+class transcoderWorker1 extends require("@amuzlab/worker").Worker {
+  constructor() {
+    super();
+    this.duration = null;
+    this.trcStatus = {};
+    this.postTrcStatus = () => {
+      return setInterval(() => {
+        // post 요청 보내면 됨
+        console.log(this.trcStatus, 1);
+      }, 5000);
+    };
+  }
+
+  async exec() {
+    const job = this.job,
+      command = transcoder.commandBuilder.command.encoding(job.data),
+      ts = transcoder.TRC.spawn(command),
+      totalFrame = await this.totalFrame(job);
+
+    job.data.childPsId = ts.pid;
+    // this.checkFile() 기능 개발 예정 - systeminfo 사용해서 해보기
+
+    this.emit("exec", job, this);
+
+    Choicer.ffmpegLogger = false;
+    commandLog(command);
+
+    ts.stderr.on("data", (data) => {
+      this.setTrcStatus(data, totalFrame);
+      stderrLog(data);
+    });
+
+    let intervalId = this.postTrcStatus();
+
+    ts.on("close", (code) => {
+      closeLog(code);
+      Choicer.ffmpegLogger = true;
+
+      clearInterval(intervalId);
+      this.trcStatus.percentage = `${100}%`;
+      this.trcStatus.status = 0;
+      console.log(this.trcStatus, 1);
+
+      this.trcStatus = {};
+
+      if (code === 0) this.emit("end", job, this);
+      else if (code === 255) (job.code = 255), this.emit("end", job);
+      else this.emit("error", `error code ${code}`, job);
+    });
+  }
+
+  async totalFrame(job) {
+    return (
+      Math.round(
+        await transcoder.TRC.getFileDuration(
+          `${job.data.basic.inputFolder}/${job.data.basic.inputFilename}`
+        )
+      ) *
+      (job.data.outputs.video.framerate ? job.data.outputs.video.framerate : 30)
+    );
+  }
+
+  setTrcStatus(data, totalFrame) {
+    let frame = String(data).match(/^frame/)?.[0], // stderr에서 log 정보가 있는 경우를 찾기 위해 사용
+      trcInfo = String(data).match(/(\d*\.?\d+)/g),
+      dup = String(data).match(/dup/)?.[0],
+      drop = String(data).match(/drop/)?.[0];
+
+    if (frame) {
+      this.trcStatus.frame = trcInfo[0];
+      this.trcStatus.bitrate = `${trcInfo[7]}kbits/s`;
+      if (dup && drop) {
+        this.trcStatus.speed = `${trcInfo[10]}x`;
+      } else {
+        this.trcStatus.speed = `${trcInfo[8]}x`;
+      }
+      this.trcStatus.status = 2;
+      this.trcStatus.percentage = `${((trcInfo[0] / totalFrame) * 100).toFixed(
+        2
+      )}%`;
+    }
+  }
+
   // setTrcStatus 간소화 필요
 
   // swicth 부분에서 job 상태 업데이트 정보 계속 보내주기

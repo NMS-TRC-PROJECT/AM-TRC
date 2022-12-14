@@ -38,9 +38,10 @@ Object.defineProperties(exports, {
     enumerable: true,
     value: (obj) => {
       const {
-        outputs: { container, outputType, video, audio },
-        basic: { inputFilename, inputFolder, outputFolder },
-      } = obj;
+          outputs: { container, outputType, video, audio },
+          basic: { inputFilename, inputFolder, outputFolder },
+        } = obj,
+        regex = /^[0-9]+(.)?[0-9]{1,4}$/;
 
       err_msg = [];
       try {
@@ -54,26 +55,26 @@ Object.defineProperties(exports, {
 
         if (video.codec && !videoCodecs[video.codec]) err_msg.push("check c:v");
 
-        if (video.quality && typeof video.quality !== "number") {
+        if (video.quality && !regex.test(video.quality)) {
           err_msg.push("check q");
         }
-        if (video.bitrate && typeof video.bitrate !== "number") {
+        if (video.bitrate && !regex.test(video.bitrate)) {
           err_msg.push("check vb");
         }
-        if (video.framerate && typeof video.framerate !== "number") {
+        if (video.framerate && !regex.test(video.framerate)) {
           err_msg.push("check vframes");
         }
         if (video.resolutionWidth || video.resolutionHeight) {
           if (
-            typeof video.resolutionWidth !== "number" ||
-            typeof video.resolutionHeight !== "number"
+            !regex.test(video.resolutionWidth) ||
+            !regex.test(video.resolutionHeight)
           )
             err_msg.push("check s");
         }
 
         if (audio.codec && !audioCodecs[audio.codec]) err_msg.push("check c:a");
 
-        if (audio.bitrate && typeof audio.bitrate !== "number") {
+        if (audio.bitrate && !regex.test(audio.bitrate)) {
           err_msg.push("check ab");
         }
 

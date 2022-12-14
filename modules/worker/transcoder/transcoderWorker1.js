@@ -30,10 +30,7 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
     const job = this.job,
       command = transcoder.commandBuilder.command.encoding(job.data),
       ts = transcoder.TRC.spawn(command),
-      duration = await this.getFileDuration(
-        job.data.basic.inputFolder,
-        job.data.basic.inputFilename
-      ); // 12-15 여기부터 시작하면 됨.. 총 frame 개수 구하면 됨
+      totalFrame = await this.totalFrame(job);
 
     job.data.childPsId = ts.pid;
     // this.checkFile() 기능 개발 예정
@@ -46,7 +43,7 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
         commandLog(command);
 
         ts.stderr.on("data", (data) => {
-          this.setTrcStatus(data, duration);
+          this.setTrcStatus(data, totalFrame);
           stderrLog(data);
         });
 
@@ -57,6 +54,8 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
           Choicer.ffmpegLogger = true;
 
           clearInterval(intervalId);
+          this.trcStatus.percentage = `${100}%`;
+          this.trcStatus.status = 0;
           console.log(this.trcStatus, 1);
 
           this.trcStatus = {};
@@ -119,12 +118,15 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
     }
   }
 
-  async getFileDuration(inputFolder, inputFilename) {
-    // let isDuration;
-    // let duration;
-    return String(
-      await transcoder.TRC.getFileDuration(`${inputFolder}/${inputFilename}`)
-    ).match(/([0-9][0-9]):([0-5][0-9]):([0-5][0-9]).([0-9][0-9]),/g)?.[0];
+  async totalFrame(job) {
+    return (
+      Math.round(
+        await transcoder.TRC.getFileDuration(
+          `${job.data.basic.inputFolder}/${job.data.basic.inputFilename}`
+        )
+      ) *
+      (job.data.outputs.video.framerate ? job.data.outputs.video.framerate : 30)
+    );
   }
 
   setTrcStatus(data, totalFrame) {
@@ -142,7 +144,9 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
         this.trcStatus.speed = `${trcInfo[8]}x`;
       }
       this.trcStatus.status = 2;
-      //   this.trcStatus.percentage;
+      this.trcStatus.percentage = `${((trcInfo[0] / totalFrame) * 100).toFixed(
+        2
+      )}%`;
     }
   }
 

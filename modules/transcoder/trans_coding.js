@@ -1,15 +1,14 @@
 const { spawn } = require("child_process");
 const { exec } = require("child_process");
-const { Router } = require("express");
 
 require("dotenv").config();
-// const ffmpeg = process.env.FFMPEG_OFFICE;
-// const ffprobe = process.env.FFPROBE_OFFICE;
-// const ROOT_PATH = process.env.OFFICE_PWD_PATH;
+const ffmpeg = process.env.FFMPEG_OFFICE;
+const ffprobe = process.env.FFPROBE_OFFICE;
+const ROOT_PATH = process.env.OFFICE_PWD_PATH;
 
-const ffmpeg = process.env.FFMPEG_LOCAL;
-const ffprobe = process.env.FFPROBE_LOCAL;
-const ROOT_PATH = process.env.LOCAL_PWD_PATH;
+// const ffmpeg = process.env.FFMPEG_LOCAL;
+// const ffprobe = process.env.FFPROBE_LOCAL;
+// const ROOT_PATH = process.env.LOCAL_PWD_PATH;
 
 Object.defineProperties(exports, {
   spawn: {
@@ -29,8 +28,10 @@ Object.defineProperties(exports, {
     enumerable: true,
     value: (file) => {
       return new Promise((resolve, reject) => {
-        exec(`${ffprobe} -i ${ROOT_PATH}${file}`).stderr.on("data", (data) => {
-          if (String(data).match(/Duration/)) resolve(data);
+        exec(
+          `${ffprobe} -i ${ROOT_PATH}${file} -v quiet -show_entries format=duration -hide_banner -of default=noprint_wrappers=1:nokey=1`
+        ).stdout.on("data", (data) => {
+          resolve(data);
         });
       });
     },

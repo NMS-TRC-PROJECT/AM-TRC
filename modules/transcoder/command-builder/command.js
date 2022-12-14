@@ -41,7 +41,7 @@ Object.defineProperties(exports, {
           outputs: { container, outputType, video, audio },
           basic: { inputFilename, inputFolder, outputFolder },
         } = obj,
-        regex = /^[0-9]+(.)?[0-9]{1,4}$/;
+        regex = /(^[1-9]+(.)?[0-9]{1,4})$|(^0(.)[0-9]{1,4})$|^[1-9]$/;
 
       err_msg = [];
       try {

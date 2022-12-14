@@ -209,19 +209,7 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
         writable: true,
         value: null,
       },
-      _choiceLogger: {
-        writable: true,
-        value: null,
-      },
     });
-    /*     this.duration = null;
-    this.trcStatus = {};
-    this.postTrcStatus = () => {
-      return setInterval(() => {
-        // post 요청 보내면 됨
-        console.log(this.trcStatus, 1);
-      }, 5000);
-    }; */
   }
 
   get job() {
@@ -232,15 +220,18 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
     switch (true) {
       case Choicer.ffmpegLogger && Choicer.ffmpegLogger2:
         this._trcLogger = ffmpegLogger;
-        this._choiceLogger = Choicer.ffmpegLogger = false;
+        job.data.logger = "ffmpegLogger";
+        Choicer.ffmpegLogger = false;
         break;
       case Choicer.ffmpegLogger === false && Choicer.ffmpegLogger2 === true:
         this._trcLogger = ffmpegLogger2;
-        this._choiceLogger = Choicer.ffmpegLogger2 = false;
+        job.data.logger = "ffmpegLogger2";
+        Choicer.ffmpegLogger2 = false;
         break;
       case Choicer.ffmpegLogger === true && Choicer.ffmpegLogger2 === false:
         this._trcLogger = ffmpegLogger;
-        this._choiceLogger = Choicer.ffmpegLogger = false;
+        job.data.logger = "ffmpegLogger";
+        Choicer.ffmpegLogger = false;
         break;
     }
 
@@ -252,14 +243,16 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
     super.exec();
     try {
       this.initTRC();
+
       this._trc.stderr.on("data", (data) => {
         this._trcLogger.ffmpegInfo("stderr", data);
       });
 
       this._trc.on("close", (code) => {
-        systemLogger.systemDebug("child process exited with code", code);
         this._trcLogger.ffmpegDebug("child process exited with code", code);
-        this._choiceLogger = true;
+        this.job.data.logger === "ffmpegLogger"
+          ? (Choicer.ffmpegLogger = true)
+          : (Choicer.ffmpegLogger2 = true);
 
         if (code === 0) this.emit("end", this.job, this);
         else if (code === 255)

@@ -11,7 +11,7 @@ class Manager extends require("events") {
         enumerable: true,
         value: new worker.WorkerContainer({
           maxWorkerCount: 2,
-          autoGenerateJobId: true,
+          // autoGenerateJobId: true,
         })
           .on("workerExec", (job, worker, workerContainer) => {
             logger.systemLogger.log.systemDebug(

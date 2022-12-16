@@ -1,5 +1,6 @@
-const schedule = require("node-schedule");
-const transcoder = require("../../transcoder");
+const schedule = require("node-schedule"),
+  transcoder = require("../../transcoder"),
+  manager = require("../../manager");
 
 const logger = require("../../logger"),
   // ffmpegLogger = logger.ffmpegLogger.log,
@@ -37,15 +38,21 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
   }
 
   set job(job) {
-    const ffmpegLogger = Object.entries(Choicer).find((e) => e[1] === true)[0];
+    try {
+      const ffmpegLogger = Object.entries(Choicer).find(
+        (e) => e[1] === true
+      )[0];
 
-    job.data.logger = ffmpegLogger;
-    this._trcLogger = require(`../../logger/ffmpegLogger/${ffmpegLogger}`);
-    ffmpegLogger === "ffmpegLogger"
-      ? (Choicer.ffmpegLogger = false)
-      : (Choicer.ffmpegLogger2 = false);
+      job.data.logger = ffmpegLogger;
+      this._trcLogger = require(`../../logger/ffmpegLogger/${ffmpegLogger}`);
+      ffmpegLogger === "ffmpegLogger"
+        ? (Choicer.ffmpegLogger = false)
+        : (Choicer.ffmpegLogger2 = false);
 
-    super.job = job;
+      super.job = job;
+    } catch (error) {
+      this.emit("error", error, this.job);
+    }
   }
 
   exec() {
@@ -80,24 +87,34 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
           this._trcStatus.status = -1;
           console.log(this._trcStatus); // post 요청
           this.emit("error", `error code ${code}`, this.job);
+          manager.cancel(this.job.id);
         }
-      }); // 더 모듈화 해보기
+      });
     } catch (error) {
-      // workerErrorHandleling작성하기
-      console.log(error);
+      this._trcScheduler.cancel();
+      this.job.data.logger === "ffmpegLogger"
+        ? (Choicer.ffmpegLogger = true)
+        : (Choicer.ffmpegLogger2 = true);
+      manager.psKill(this.job.id);
+
+      this._trcStatus.status = -1;
+      console.log(this._trcStatus); // post 요청
+
+      this.emit("error", error, this.job);
+      manager.cancel(this.job.id);
     }
   }
+  // 더 모듈화 해보기
 
   async initTRC() {
     const command = transcoder.commandBuilder.command.encoding(this.job.data);
+    systemLogger.systemDebug("ffmpeg_command", command.join(" "));
     // this.checkFile() 기능 개발 예정
 
     this._trc = transcoder.TRC.spawn(command);
     this.job.data.childPsId = this._trc.pid;
-    this._trcStatus.totalFrame = await this.totalFrame();
     this._trcScheduler;
-
-    systemLogger.systemDebug("ffmpeg_command", command.join(" "));
+    this._trcStatus.totalFrame = await this.totalFrame();
   }
 
   async totalFrame() {

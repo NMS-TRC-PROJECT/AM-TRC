@@ -1,4 +1,3 @@
-const transcoder = require("../../../modules/transcoder");
 const works = require("@amuzlab/worker"),
   { Job, Worker, WorkerContainer, error, map } = works,
   workerMapper = require("../../../modules/WorkerMapper"),
@@ -18,13 +17,8 @@ Object.defineProperties(exports, {
         job = createJob(body);
         checkExecJob(job.id, job.serviceType);
         manager.updateTrcStatus(job);
-        id = manager.exec(job); // 에러처리 다시하기
+        id = manager.exec(job);
 
-        logger.systemLogger.log.systemInfo(
-          `[FFMPEG_TRC] Job execution success. (job.id: %s, job.serviceType: %s)`,
-          `${JSON.stringify(job.id)}`,
-          `${JSON.stringify(job.serviceType)}`
-        );
         return res.status(200).json({
           resultCode: 201,
           result: {
@@ -51,14 +45,8 @@ Object.defineProperties(exports, {
     value: (transactionId, req, res, next) => {
       try {
         checkCancelJob(transactionId);
-        // manager.psKill(Number(transactionId));
         manager.psKill(transactionId);
 
-        /* logger.systemLogger.log.systemInfo(
-          `[FFMPEG_TRC] Job cancellation success. (job.id: %s, job.serviceType: %s)`,
-          `${JSON.stringify(job[0].data.id)}`,
-          `${JSON.stringify(job[0].data.serviceType)}`
-        ); */
         return res.status(200).json({ resultCode: 200, errorString: "" });
       } catch (error) {
         logger.systemLogger.log.systemError(

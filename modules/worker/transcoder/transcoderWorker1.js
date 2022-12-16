@@ -1,201 +1,11 @@
+const schedule = require("node-schedule");
 const transcoder = require("../../transcoder");
 
 const logger = require("../../logger"),
-  ffmpegLogger = logger.ffmpegLogger.log,
-  ffmpegLogger2 = logger.ffmpegLogger.log2,
+  // ffmpegLogger = logger.ffmpegLogger.log,
+  // ffmpegLogger2 = logger.ffmpegLogger.log2,
   systemLogger = logger.systemLogger.log,
   Choicer = logger.loggerChoicer;
-
-/* class transcoderWorker1 extends require("@amuzlab/worker").Worker {
-  constructor() {
-    super();
-    this.trcStatus = {};
-    this.trcStatus2 = {};
-    this.postTrcStatus = () => {
-      return setInterval(() => {
-        // post 요청 보내면 됨
-        console.log(this.trcStatus, 1);
-      }, 5000);
-    };
-    this.postTrcStatus2 = () => {
-      return setInterval(() => {
-        console.log(this.trcStatus2, 2);
-        //post 요청 보내면 됨
-      }, 5000);
-    };
-  }
-
-  async exec() {
-    const job = this.job,
-      command = transcoder.commandBuilder.command.encoding(job.data),
-      ts = transcoder.TRC.spawn(command),
-      totalFrame = await this.totalFrame(job);
-
-    job.data.childPsId = ts.pid;
-    // this.checkFile() 기능 개발 예정
-
-    this.emit("exec", job, this);
-
-    switch (true) {
-      case Choicer.ffmpegLogger && Choicer.ffmpegLogger2:
-        Choicer.ffmpegLogger = false;
-        commandLog(command);
-
-        ts.stderr.on("data", (data) => {
-          this.setTrcStatus(data, totalFrame);
-          stderrLog(data);
-        });
-
-        let intervalId = this.postTrcStatus();
-
-        ts.on("close", (code) => {
-          closeLog(code);
-          Choicer.ffmpegLogger = true;
-
-          clearInterval(intervalId);
-          this.trcStatus.percentage = `${100}%`;
-          this.trcStatus.status = 0;
-          console.log(this.trcStatus, 1);
-
-          this.trcStatus = {};
-
-          if (code === 0) this.emit("end", job, this);
-          else if (code === 255) (job.code = 255), this.emit("end", job);
-          else this.emit("error", `error code ${code}`, job);
-        });
-        break;
-
-      case Choicer.ffmpegLogger === false && Choicer.ffmpegLogger2 === true:
-        Choicer.ffmpegLogger2 = false;
-        commandLog2(command);
-
-        ts.stderr.on("data", (data) => {
-          this.setTrcStatus2(data);
-          stderrLog2(data);
-        });
-
-        let intervalId2 = this.postTrcStatus2();
-
-        ts.on("close", (code) => {
-          closeLog2(code);
-          Choicer.ffmpegLogger2 = true;
-          clearInterval(intervalId2);
-          console.log(this.trcStatus2, 2);
-
-          this.trcStatus2 = {};
-
-          if (code === 0) this.emit("end", job, this);
-          else if (code === 255) (job.code = 255), this.emit("end", job);
-          else this.emit("error", `error code ${code}`, job);
-        });
-        break;
-
-      case Choicer.ffmpegLogger === true && Choicer.ffmpegLogger2 === false:
-        Choicer.ffmpegLogger = false;
-        commandLog(command);
-
-        ts.stderr.on("data", (data) => {
-          this.setTrcStatus(data);
-          stderrLog(data);
-        });
-
-        let intervalId3 = this.postTrcStatus();
-
-        ts.on("close", (code) => {
-          closeLog(code);
-          Choicer.ffmpegLogger = true;
-          clearInterval(intervalId3);
-          console.log(this.trcStatus, 3);
-
-          this.trcStatus = {};
-
-          if (code === 0) this.emit("end", job, this);
-          else if (code === 255) (job.code = 255), this.emit("end", job);
-          else this.emit("error", `error code ${code}`, job);
-        });
-        break;
-    }
-  }
-
-  async totalFrame(job) {
-    return (
-      Math.round(
-        await transcoder.TRC.getFileDuration(
-          `${job.data.basic.inputFolder}/${job.data.basic.inputFilename}`
-        )
-      ) *
-      (job.data.outputs.video.framerate ? job.data.outputs.video.framerate : 30)
-    );
-  }
-
-  setTrcStatus(data, totalFrame) {
-    let frame = String(data).match(/^frame/)?.[0], // stderr에서 log 정보가 있는 경우를 찾기 위해 사용
-      trcInfo = String(data).match(/(\d*\.?\d+)/g),
-      dup = String(data).match(/dup/)?.[0],
-      drop = String(data).match(/drop/)?.[0];
-
-    if (frame) {
-      this.trcStatus.frame = trcInfo[0];
-      this.trcStatus.bitrate = `${trcInfo[7]}kbits/s`;
-      if (dup && drop) {
-        this.trcStatus.speed = `${trcInfo[10]}x`;
-      } else {
-        this.trcStatus.speed = `${trcInfo[8]}x`;
-      }
-      this.trcStatus.status = 2;
-      this.trcStatus.percentage = `${((trcInfo[0] / totalFrame) * 100).toFixed(
-        2
-      )}%`;
-    }
-  }
-
-  setTrcStatus2(data) {
-    let frame = String(data).match(/^frame/)?.[0];
-    let trcInfo = String(data).match(/(\d*\.?\d+)/g);
-    let dup = String(data).match(/dup/)?.[0];
-    let drop = String(data).match(/drop/)?.[0];
-    if (frame) {
-      this.trcStatus2.frame = trcInfo[0];
-      this.trcStatus2.bitrate = `${trcInfo[7]}kbits/s`;
-      if (dup && drop) {
-        this.trcStatus2.speed = `${trcInfo[10]}x`;
-      } else {
-        this.trcStatus2.speed = `${trcInfo[8]}x`;
-      }
-      this.trcStatus2.status = 2;
-    }
-  }
-  // setTrcStatus 간소화 필요
-
-  // swicth 부분에서 job 상태 업데이트 정보 계속 보내주기
-  // 에러처리도 같이 -1,0,1 .. 등등
-  // 더 간단하게 만들어보기
-}
-
-function commandLog(command) {
-  ffmpegLogger.ffmpegDebug("command", command.join(" "));
-  systemLogger.systemDebug("ffmpeg_command", command.join(" "));
-}
-function commandLog2(command) {
-  ffmpegLogger2.ffmpegDebug("command", command.join(" "));
-  systemLogger.systemDebug("ffmpeg_command", command.join(" "));
-}
-
-function stderrLog(data) {
-  ffmpegLogger.ffmpegInfo("stderr", data);
-}
-function stderrLog2(data) {
-  ffmpegLogger2.ffmpegInfo("stderr", data);
-}
-
-function closeLog(code) {
-  ffmpegLogger.ffmpegDebug("child process exited with code", code);
-  systemLogger.systemDebug("child process exited with code", code);
-}
-function closeLog2(code) {
-  ffmpegLogger2.ffmpegDebug("child process exited with code", code);
-  systemLogger.systemDebug("child process exited with code", code);
-} */
 
 class transcoderWorker1 extends require("@amuzlab/worker").Worker {
   constructor() {
@@ -204,6 +14,16 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
       _trc: {
         writable: true,
         value: null,
+      },
+      _trcStatus: {
+        writable: true,
+        value: {},
+      },
+      _trcScheduler: {
+        writable: true,
+        value: schedule.scheduleJob("0/5 * * * * *", () => {
+          console.log(this._trcStatus);
+        }),
       },
       _trcLogger: {
         writable: true,
@@ -217,26 +37,15 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
   }
 
   set job(job) {
-    switch (true) {
-      case Choicer.ffmpegLogger && Choicer.ffmpegLogger2:
-        this._trcLogger = ffmpegLogger;
-        job.data.logger = "ffmpegLogger";
-        Choicer.ffmpegLogger = false;
-        break;
-      case Choicer.ffmpegLogger === false && Choicer.ffmpegLogger2 === true:
-        this._trcLogger = ffmpegLogger2;
-        job.data.logger = "ffmpegLogger2";
-        Choicer.ffmpegLogger2 = false;
-        break;
-      case Choicer.ffmpegLogger === true && Choicer.ffmpegLogger2 === false:
-        this._trcLogger = ffmpegLogger;
-        job.data.logger = "ffmpegLogger";
-        Choicer.ffmpegLogger = false;
-        break;
-    }
+    const ffmpegLogger = Object.entries(Choicer).find((e) => e[1] === true)[0];
+
+    job.data.logger = ffmpegLogger;
+    this._trcLogger = require(`../../logger/ffmpegLogger/${ffmpegLogger}`);
+    ffmpegLogger === "ffmpegLogger"
+      ? (Choicer.ffmpegLogger = false)
+      : (Choicer.ffmpegLogger2 = false);
 
     super.job = job;
-    //  나중에 반복문 같은거로 로거 정하는 로직 만들기, 더 줄이는 방향으로
   }
 
   exec() {
@@ -245,20 +54,34 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
       this.initTRC();
 
       this._trc.stderr.on("data", (data) => {
+        this.updateTrcStatus(data);
         this._trcLogger.ffmpegInfo("stderr", data);
       });
+      // 상태업데이트 분리시켜보기
 
       this._trc.on("close", (code) => {
-        this._trcLogger.ffmpegDebug("child process exited with code", code);
         this.job.data.logger === "ffmpegLogger"
           ? (Choicer.ffmpegLogger = true)
           : (Choicer.ffmpegLogger2 = true);
+        this._trcLogger.ffmpegDebug("child process exited with code", code);
+        this._trcScheduler.cancel();
 
-        if (code === 0) this.emit("end", this.job, this);
-        else if (code === 255)
-          (this.job.code = 255), this.emit("end", this.job);
-        else this.emit("error", `error code ${code}`, this.job);
-      });
+        if (code === 0) {
+          this._trcStatus.status = 0;
+          this._trcStatus.percentage = `${100}%`;
+          console.log(this._trcStatus); // post 요청
+          this.emit("end", this.job, this);
+        } else if (code === 255) {
+          this.job.code = 255;
+          this._trcStatus.status = 3;
+          console.log(this._trcStatus); // post 요청
+          this.emit("end", this.job);
+        } else {
+          this._trcStatus.status = -1;
+          console.log(this._trcStatus); // post 요청
+          this.emit("error", `error code ${code}`, this.job);
+        }
+      }); // 더 모듈화 해보기
     } catch (error) {
       // workerErrorHandleling작성하기
       console.log(error);
@@ -267,9 +90,12 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
 
   async initTRC() {
     const command = transcoder.commandBuilder.command.encoding(this.job.data);
+    // this.checkFile() 기능 개발 예정
 
     this._trc = transcoder.TRC.spawn(command);
     this.job.data.childPsId = this._trc.pid;
+    this._trcStatus.totalFrame = await this.totalFrame();
+    this._trcScheduler;
 
     systemLogger.systemDebug("ffmpeg_command", command.join(" "));
   }
@@ -287,43 +113,29 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
     );
   }
 
-  /*   
-
-  setTrcStatus(data, totalFrame) {
+  updateTrcStatus(data) {
     let frame = String(data).match(/^frame/)?.[0], // stderr에서 log 정보가 있는 경우를 찾기 위해 사용
       trcInfo = String(data).match(/(\d*\.?\d+)/g),
       dup = String(data).match(/dup/)?.[0],
       drop = String(data).match(/drop/)?.[0];
 
     if (frame) {
-      this.trcStatus.frame = trcInfo[0];
-      this.trcStatus.bitrate = `${trcInfo[7]}kbits/s`;
+      this._trcStatus.frame = trcInfo[0];
+      this._trcStatus.bitrate = `${trcInfo[7]}kbits/s`;
       if (dup && drop) {
-        this.trcStatus.speed = `${trcInfo[10]}x`;
+        this._trcStatus.speed = `${trcInfo[10] ? trcInfo[10] : trcInfo[9]}x`;
       } else {
-        this.trcStatus.speed = `${trcInfo[8]}x`;
+        this._trcStatus.speed = `${trcInfo[8]}x`;
       }
-      this.trcStatus.status = 2;
-      this.trcStatus.percentage = `${((trcInfo[0] / totalFrame) * 100).toFixed(
-        2
-      )}%`;
+      this._trcStatus.status = 2;
+      this._trcStatus.percentage = `${(
+        (trcInfo[0] / this._trcStatus.totalFrame) *
+        100
+      ).toFixed(2)}%`;
     }
-  } */
+  }
 
   // setTrcStatus 간소화 필요
-
-  // swicth 부분에서 job 상태 업데이트 정보 계속 보내주기
-  // 에러처리도 같이 -1,0,1 .. 등등
-  // 더 간단하게 만들어보기
 }
 
-// 이게 최선의 방법인가??... 안좋은듯...
-// 확장성이 떨어짐, 고도화 작업 해보기
-
 module.exports = transcoderWorker1;
-
-/* 
-1. 케이스 별로 나눈 것 하나로 만들고 
-2. 기능들 따로 분리하기 (실행은 실행만, 로깅은 로깅만)
-3. 하나의 함수에 하나에 기능만 넣기
-4. 내 생각으로는 init trc에 기능을 추가하면 될 듯..? */

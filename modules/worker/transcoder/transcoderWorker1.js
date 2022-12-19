@@ -3,8 +3,8 @@ const schedule = require("node-schedule"),
   manager = require("../../manager");
 
 const logger = require("../../logger"),
-  // ffmpegLogger = logger.ffmpegLogger.log,
-  // ffmpegLogger2 = logger.ffmpegLogger.log2,
+  ffmpegLogger = logger.ffmpegLogger.log,
+  ffmpegLogger2 = logger.ffmpegLogger.log2,
   systemLogger = logger.systemLogger.log,
   Choicer = logger.loggerChoicer;
 
@@ -39,57 +39,28 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
 
   set job(job) {
     try {
-      const ffmpegLogger = Object.entries(Choicer).find(
+      const ffmpegLoggers = Object.entries(Choicer).find(
         (e) => e[1] === true
       )[0];
 
-      job.data.logger = ffmpegLogger;
-      this._trcLogger = require(`../../logger/ffmpegLogger/${ffmpegLogger}`);
-      ffmpegLogger === "ffmpegLogger"
-        ? (Choicer.ffmpegLogger = false)
-        : (Choicer.ffmpegLogger2 = false);
+      if (ffmpegLoggers === "ffmpegLogger")
+        (Choicer.ffmpegLogger = false), (this._trcLogger = ffmpegLogger);
+      else (Choicer.ffmpegLogger2 = false), (this._trcLogger = ffmpegLogger2);
+
+      job.data.logger = ffmpegLoggers;
 
       super.job = job;
     } catch (error) {
       this.emit("error", error, this.job);
     }
   }
+  // 리팩토링 필요
 
   exec() {
     super.exec();
     try {
       this.initTRC();
-
-      this._trc.stderr.on("data", (data) => {
-        this.updateTrcStatus(data);
-        this._trcLogger.ffmpegInfo("stderr", data);
-      });
-      // 상태업데이트 분리시켜보기
-
-      this._trc.on("close", (code) => {
-        this.job.data.logger === "ffmpegLogger"
-          ? (Choicer.ffmpegLogger = true)
-          : (Choicer.ffmpegLogger2 = true);
-        this._trcLogger.ffmpegDebug("child process exited with code", code);
-        this._trcScheduler.cancel();
-
-        if (code === 0) {
-          this._trcStatus.status = 0;
-          this._trcStatus.percentage = `${100}%`;
-          console.log(this._trcStatus); // post 요청
-          this.emit("end", this.job, this);
-        } else if (code === 255) {
-          this.job.code = 255;
-          this._trcStatus.status = 3;
-          console.log(this._trcStatus); // post 요청
-          this.emit("end", this.job);
-        } else {
-          this._trcStatus.status = -1;
-          console.log(this._trcStatus); // post 요청
-          this.emit("error", `error code ${code}`, this.job);
-          manager.cancel(this.job.id);
-        }
-      });
+      this.execTRC();
     } catch (error) {
       this._trcScheduler.cancel();
       this.job.data.logger === "ffmpegLogger"
@@ -104,7 +75,6 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
       manager.cancel(this.job.id);
     }
   }
-  // 더 모듈화 해보기
 
   async initTRC() {
     const command = transcoder.commandBuilder.command.encoding(this.job.data);
@@ -115,6 +85,39 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
     this.job.data.childPsId = this._trc.pid;
     this._trcScheduler;
     this._trcStatus.totalFrame = await this.totalFrame();
+  }
+
+  execTRC() {
+    this._trc.stderr.on("data", (data) => {
+      this.updateTrcStatus(data);
+      this._trcLogger.ffmpegInfo("stderr", data);
+    });
+    // 상태업데이트 분리시켜보기
+
+    this._trc.on("close", (code) => {
+      this.job.data.logger === "ffmpegLogger"
+        ? (Choicer.ffmpegLogger = true)
+        : (Choicer.ffmpegLogger2 = true);
+      this._trcLogger.ffmpegDebug("child process exited with code", code);
+      this._trcScheduler.cancel();
+
+      if (code === 0) {
+        this._trcStatus.status = 0;
+        this._trcStatus.percentage = `${100}%`;
+        console.log(this._trcStatus); // post 요청
+        this.emit("end", this.job, this);
+      } else if (code === 255) {
+        this.job.code = 255;
+        this._trcStatus.status = 3;
+        console.log(this._trcStatus); // post 요청
+        this.emit("end", this.job);
+      } else {
+        this._trcStatus.status = -1;
+        console.log(this._trcStatus); // post 요청
+        this.emit("error", `error code ${code}`, this.job);
+        manager.cancel(this.job.id);
+      }
+    });
   }
 
   async totalFrame() {

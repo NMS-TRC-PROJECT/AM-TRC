@@ -27,7 +27,9 @@ Object.defineProperties(exports, {
     enumerable: true,
     value: (req, res, next) => {
       const { transactionId } = req.params;
-      next(transactionId);
+      const { serviceType } = req.body;
+
+      next({ id: transactionId, serviceType });
     },
   },
 

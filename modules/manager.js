@@ -21,7 +21,6 @@ class Manager extends require("events") {
             );
           })
           .on("workerEnd", (job, worker, workerContainer) => {
-            if (job.code === 255) return this.cancel(job.id); // 나중에 cancel 하나로만 ps kill 되게 리팩토링
             logger.systemLogger.log.systemDebug(
               "[workerContainer] workerEnd (job.id: %s, job.serviceType: %s)",
               `${JSON.stringify(job.id)}`,
@@ -58,39 +57,38 @@ class Manager extends require("events") {
         })
           .on("workerExec", (job, worker, workerContainer) => {
             logger.systemLogger.log.systemDebug(
-              "[workerContainer] workerExec (job.id: %s)",
-              `${JSON.stringify(job.id)}`
+              "[workerContainer] workerExec (job.id: %s, job.serviceType: %s)",
+              `${JSON.stringify(job.id)}`,
+              `${JSON.stringify(job.serviceType)}`
             );
           })
           .on("workerEnd", (job, worker, workerContainer) => {
             logger.systemLogger.log.systemDebug(
-              "[workerContainer] workerEnd (job.id: %s)",
-              `${JSON.stringify(job.id)}`
+              "[workerContainer] workerEnd (job.id: %s, job.serviceType: %s)",
+              `${JSON.stringify(job.id)}`,
+              `${JSON.stringify(job.serviceType)}`
             );
           })
           .on("workerStop", (job, worker, workerContainer) => {
             logger.systemLogger.log.systemDebug(
-              "[workerContainer] workerStop (job.id: %s)",
-              `${JSON.stringify(job.id)}`
+              "[workerContainer] workerStop (job.id: %s, job.serviceType: %s)",
+              `${JSON.stringify(job.id)}`,
+              `${JSON.stringify(job.serviceType)}`
             );
           })
           .on("workerError", (error, job, worker, workerContainer) => {
-            if (error) {
-              logger.systemLogger.log.systemError(
-                "[workerContainer] workerError (job: %s, error : %s)",
-                `${JSON.stringify(job)}`,
-                `${JSON.stringify(error, Object.getOwnPropertyNames(error))}`
-              );
-            }
+            logger.systemLogger.log.systemError(
+              "[workerContainer] workerError (job: %s, error : %s)",
+              `${JSON.stringify(job)}`,
+              `${JSON.stringify(error, Object.getOwnPropertyNames(error))}`
+            );
           })
           .on("execError", (error, job, workerContainer) => {
-            if (error) {
-              logger.systemLogger.log.systemError(
-                "[workerContainer] execError (job: %s, error : %s)",
-                `${JSON.stringify(job)}`,
-                `${JSON.stringify(error, Object.getOwnPropertyNames(error))}`
-              );
-            }
+            logger.systemLogger.log.systemError(
+              "[workerContainer] execError (job: %s, error : %s)",
+              `${JSON.stringify(job)}`,
+              `${JSON.stringify(error, Object.getOwnPropertyNames(error))}`
+            );
           }),
       },
     });
@@ -110,18 +108,35 @@ class Manager extends require("events") {
     return result;
   }
 
-  psKill(id) {
-    trc.psKill(
-      this.ffmpegContainer.execQueue.find((j) => j.id === id).data.childPsId
-    );
-    // 제대로 프로세스 멈췄는지 확인하는 기능 만들기
-  }
+  async cancel(job) {
+    let result;
 
-  cancel(id) {
-    return this.ffmpegContainer.cancel(id);
+    switch (job.serviceType) {
+      case workerMapper.SERVICE_TYPE.FFMPEG_TRC_2:
+        // await trc.psKill(
+        //   this.ffmpegContainer2.execQueue.find(
+        //     (j) => j.id === jobInfo.transactionId
+        //   ).data.childPsId
+        // );
+        result = this.ffmpegContainer2.cancel(job.id);
+        break;
+      default:
+        await trc
+          .psKill(
+            this.ffmpegContainer.execQueue.find((j) => j.id === job.id).data
+              .childPsId
+          )
+          .then((code) => {
+            code !== 0
+              ? logger.systemLogger.log.systemError(
+                  "[process] killError (code: %s) ",
+                  `${code}`
+                )
+              : (result = this.ffmpegContainer.cancel(job.id));
+          });
+    }
 
-    // worker에서 이벤트 내용에 맞게 cancel 처리 시키기
-    // 서비스 타입에 맞춰서 cancel하는 기능 추가하기
+    return result;
   }
 
   updateTrcStatus(job) {

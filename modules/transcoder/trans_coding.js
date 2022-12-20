@@ -21,9 +21,14 @@ Object.defineProperties(exports, {
   psKill: {
     enumerable: true,
     value: (psId) => {
-      exec(`kill -15 ${psId}`).on("close", (code) => {});
+      return new Promise((resolve, reject) => {
+        exec(`kill -15 ${psId}`).on("close", (code) => {
+          resolve(code);
+        });
+      });
     },
   },
+
   getFileDuration: {
     enumerable: true,
     value: (file) => {

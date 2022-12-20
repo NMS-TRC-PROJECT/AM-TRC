@@ -42,16 +42,16 @@ Object.defineProperties(exports, {
 
   cancelJob: {
     enumerable: true,
-    value: (transactionId, req, res, next) => {
+    value: (job, req, res, next) => {
       try {
-        checkCancelJob(transactionId);
-        manager.psKill(transactionId);
+        checkCancelJob(job);
+        manager.cancel(job);
 
         return res.status(200).json({ resultCode: 200, errorString: "" });
       } catch (error) {
         logger.systemLogger.log.systemError(
           `[FFMPEG_TRC] Job cancellation failed. (transactionId: %s, error: %s)`,
-          JSON.stringify(transactionId),
+          JSON.stringify(job.transactionId),
           JSON.stringify(error, Object.getOwnPropertyNames(error))
         );
         return res
@@ -112,10 +112,23 @@ function checkExecJob(id, serviceType) {
   }
 }
 
-function checkCancelJob(id) {
-  // 나중에 서비스 타입에 맞춰서 돌아가게 수정하기
-  let queue = [...manager.ffmpegContainer.execQueue];
-  if (queue.find((j) => j.id === id) === undefined) {
+function checkCancelJob(job) {
+  let queue;
+  switch (job.serviceType) {
+    case workerMapper.SERVICE_TYPE.FFMPEG_TRC_2:
+      queue = [
+        ...manager.ffmpegContainer2.readyQueue,
+        ...manager.ffmpegContainer2.execQueue,
+      ];
+      break;
+    default:
+      queue = [
+        ...manager.ffmpegContainer.readyQueue,
+        ...manager.ffmpegContainer.execQueue,
+      ];
+  }
+
+  if (queue.find((j) => j.id === job.id) === undefined) {
     throw new Error("This ID is not found");
   }
 }

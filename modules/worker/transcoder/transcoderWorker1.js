@@ -83,7 +83,18 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
     this._trc = transcoder.TRC.spawn(command);
     this.job.data.childPsId = this._trc.pid;
     this._trcScheduler;
-    this._trcStatus.totalFrame = await this.totalFrame();
+
+    this._trcStatus.transactionId = this.job.id;
+    this._trcStatus.status = 2;
+    this._trcStatus.transcodes = [
+      {
+        presetCode: "",
+        outputFilename: this.job.data.basic.outputFilename,
+      },
+    ];
+    this.job.data.input = {
+      totalFrame: await this.totalFrame(),
+    };
   }
 
   execTRC() {
@@ -148,7 +159,7 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
       }
       this._trcStatus.status = 2;
       this._trcStatus.percentage = `${(
-        (trcInfo[0] / this._trcStatus.totalFrame) *
+        (trcInfo[0] / this.job.data.input.totalFrame) *
         100
       ).toFixed(2)}%`;
     }

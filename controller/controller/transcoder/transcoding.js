@@ -16,7 +16,7 @@ Object.defineProperties(exports, {
       try {
         job = createJob(body);
         checkExecJob(job.id, job.serviceType);
-        manager.updateTrcStatus(job);
+        updateTrcStatus(job);
         id = manager.exec(job);
 
         return res.status(200).json({
@@ -83,6 +83,7 @@ Object.defineProperties(exports, {
 
 function createJob(obj) {
   let job = new Job();
+
   job.id = obj.transactionId;
   job.data = obj;
   job.serviceType = obj.serviceType
@@ -131,4 +132,21 @@ function checkCancelJob(job) {
   if (queue.find((j) => j.id === job.id) === undefined) {
     throw new Error("This ID is not found");
   }
+}
+
+function updateTrcStatus(job) {
+  let status = {
+    transactionId: job.id,
+    status: 1,
+    transcodes: [
+      {
+        presetCode: "",
+        outputFilename: job.data.basic.outputFilename,
+      },
+    ],
+  };
+
+  console.log(status);
+
+  // 포스트 요청 보내는 기능 만들기
 }

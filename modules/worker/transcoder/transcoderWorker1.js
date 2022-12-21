@@ -66,13 +66,12 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
       this.job.data.logger === "ffmpegLogger"
         ? (Choicer.ffmpegLogger = true)
         : (Choicer.ffmpegLogger2 = true);
-      manager.psKill(this.job.id);
 
       this._trcStatus.status = -1;
       console.log(this._trcStatus); // post 요청
 
       this.emit("error", error, this.job);
-      manager.cancel(this.job.id);
+      manager.cancel(this.job);
     }
   }
 
@@ -107,6 +106,7 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
         console.log(this._trcStatus); // post 요청
         this.emit("end", this.job, this);
       } else if (code === 255) {
+        this.job.code = 255;
         this._trcStatus.status = 3;
         console.log(this._trcStatus); // post 요청
         this.emit("end", this.job);

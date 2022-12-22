@@ -1,6 +1,7 @@
 const schedule = require("node-schedule"),
   transcoder = require("../../transcoder"),
-  manager = require("../../manager");
+  manager = require("../../manager"),
+  request = require("./request");
 
 const logger = require("../../logger"),
   ffmpegLogger = logger.ffmpegLogger.log,
@@ -23,7 +24,7 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
       _trcScheduler: {
         writable: true,
         value: schedule.scheduleJob("0/5 * * * * *", () => {
-          console.log(this._trcStatus);
+          request.vod.sendTranscodeJobStatus(this._trcStatus);
         }),
       },
       _trcLogger: {
@@ -68,7 +69,7 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
         : (Choicer.ffmpegLogger2 = true);
 
       this._trcStatus.status = -1;
-      console.log(this._trcStatus); // post 요청
+      request.vod.sendTranscodeJobStatus(this._trcStatus);
 
       this.emit("error", error, this.job);
       manager.cancel(this.job);
@@ -113,17 +114,17 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
 
       if (code === 0) {
         this._trcStatus.status = 0;
-        this._trcStatus.percentage = `${100}%`;
-        console.log(this._trcStatus); // post 요청
+        this._trcStatus.percentage = 100;
+        request.vod.sendTranscodeJobStatus(this._trcStatus);
         this.emit("end", this.job, this);
       } else if (code === 255) {
         this.job.code = 255;
         this._trcStatus.status = 3;
-        console.log(this._trcStatus); // post 요청
+        request.vod.sendTranscodeJobStatus(this._trcStatus);
         this.emit("end", this.job);
       } else {
         this._trcStatus.status = -1;
-        console.log(this._trcStatus); // post 요청
+        request.vod.sendTranscodeJobStatus(this._trcStatus);
         this.emit("error", `error code ${code}`, this.job);
         manager.cancel(this.job.id);
       }
@@ -150,22 +151,22 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
       drop = String(data).match(/drop/)?.[0];
 
     if (frame) {
-      this._trcStatus.frame = trcInfo[0];
-      this._trcStatus.bitrate = `${trcInfo[7]}kbits/s`;
+      this._trcStatus.frames = trcInfo[0];
+      this._trcStatus.bitrate = `${trcInfo[7]}`;
       if (dup && drop) {
-        this._trcStatus.speed = `${trcInfo[10] ? trcInfo[10] : trcInfo[9]}x`;
+        this._trcStatus.speed = `${trcInfo[10] ? trcInfo[10] : trcInfo[9]}`;
       } else {
-        this._trcStatus.speed = `${trcInfo[8]}x`;
+        this._trcStatus.speed = `${trcInfo[8]}`;
       }
       this._trcStatus.status = 2;
       this._trcStatus.percentage = `${(
         (trcInfo[0] / this.job.data.input.totalFrame) *
         100
-      ).toFixed(2)}%`;
+      ).toFixed(2)}`;
     }
   }
 
-  // setTrcStatus 간소화 필요
+  // 나중에 오브젝트 폴더 같은 것 만들어서 모듈화 해보기
 }
 
 module.exports = transcoderWorker1;

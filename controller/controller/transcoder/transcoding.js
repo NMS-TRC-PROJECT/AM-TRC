@@ -1,7 +1,8 @@
 const works = require("@amuzlab/worker"),
   { Job, Worker, WorkerContainer, error, map } = works,
   workerMapper = require("../../../modules/WorkerMapper"),
-  manager = require("../../../modules/manager");
+  manager = require("../../../modules/manager"),
+  request = require("../../../modules/worker/transcoder/request");
 
 const logger = require("../../../modules/logger");
 
@@ -67,13 +68,13 @@ Object.defineProperties(exports, {
       try {
         res.sendStatus(200);
         logger.systemLogger.log.systemInfo(
-          `[FFMPEG-TRC] get status success.`,
+          `[FFMPEG_TRC] get status success.`,
           200
         );
       } catch (error) {
         res.sendStatus(500);
         logger.systemLogger.log.systemError(
-          `[FFMPEG-TRC] get status failed. (error: %s)`,
+          `[FFMPEG_TRC] get status failed. (error: %s)`,
           error
         );
       }
@@ -135,7 +136,7 @@ function checkCancelJob(job) {
 }
 
 function updateTrcStatus(job) {
-  let status = {
+  request.vod.sendTranscodeJobStatus({
     transactionId: job.id,
     status: 1,
     transcodes: [
@@ -144,9 +145,5 @@ function updateTrcStatus(job) {
         outputFilename: job.data.basic.outputFilename,
       },
     ],
-  };
-
-  console.log(status);
-
-  // 포스트 요청 보내는 기능 만들기
+  });
 }

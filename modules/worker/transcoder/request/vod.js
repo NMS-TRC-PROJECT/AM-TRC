@@ -6,10 +6,9 @@ const request = require("@amuzlab/request"),
   baseUrl = process.env.BASE_URL;
 
 request.config.setDefault({
-  //   logURL: "/log", 뭐에 쓰는 얘인가?
   retryCnt: 0,
+  timeout: 3,
   // retryInterval: 1000,
-  // timeout: 5,
 });
 
 Object.defineProperties(exports, {
@@ -17,7 +16,6 @@ Object.defineProperties(exports, {
     enumerable: true,
     value: async (trcStatus) => {
       try {
-        console.log(trcStatus);
         systemLogger.systemInfo(
           `Sending transcode job status. (data: %s)`,
           JSON.stringify(trcStatus)
@@ -37,7 +35,7 @@ Object.defineProperties(exports, {
         );
       } catch (error) {
         systemLogger.systemError(
-          `Failed to send transcode job status. (trcStatus: %s,  error: %s)`,
+          `Failed to send transcode job status. (trcStatus: %s, error: %s)`,
           JSON.stringify(trcStatus),
           JSON.stringify(error, Object.getOwnPropertyNames(error))
         );

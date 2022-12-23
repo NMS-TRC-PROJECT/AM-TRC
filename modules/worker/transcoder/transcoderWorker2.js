@@ -41,8 +41,13 @@ class transcoderWorker2 extends require("@amuzlab/worker").Worker {
   }
 
   set job(job) {
-    // if (!job.input) job.data.input = { inputType: "FILE" }; //  리팩토링 필요
-
+    if (!job.input) {
+      job.data.input = {
+        inputType: "FILE",
+        typeInfo: `${ROOT_PATH}/mnt/input/${job.data.basic.inputFilename}`,
+      };
+      //  리팩토링 필요
+    }
     try {
       const ffmpegLoggers = Object.entries(Choicer).find(
         (e) => e[1] === true
@@ -135,8 +140,8 @@ function initATRC() {
         pidPath: `${ROOT_PATH}/mnt/pid`,
       },
     })
-    .on("start", (a, b) => {
-      console.log(123123);
+    .on("start", (job, atrc) => {
+      console.log("start =>", job, atrc);
     });
 
   // const command = transcoder.commandBuilder.command.encoding(this.job.data);

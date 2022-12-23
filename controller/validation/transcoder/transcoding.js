@@ -35,7 +35,7 @@ Object.defineProperties(exports, {
 
   getStatus: {
     enumerable: true,
-    value: async (req, res, next) => {
+    value: (req, res, next) => {
       next();
     },
   },

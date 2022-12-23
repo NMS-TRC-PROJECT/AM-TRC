@@ -114,6 +114,7 @@ class Manager extends require("events") {
       case workerMapper.SERVICE_TYPE.FFMPEG_TRC_2:
         if ((await this.psKill(job, this.ffmpegContainer2)) === 0)
           this.ffmpegContainer2.cancel(job.id);
+        this.ffmpegContainer2.cancel(job.id);
         // 리팩토링 필요
         break;
       default:

@@ -64,7 +64,7 @@ Object.defineProperties(exports, {
 
   getStatus: {
     enumerable: true,
-    value: async (req, res, next) => {
+    value: (req, res, next) => {
       try {
         res.sendStatus(200);
         logger.systemLogger.log.systemInfo(

@@ -29,7 +29,6 @@ app.use(
   },
   routes
 );
-
 app.use((err, req, res, next) => {
   logger.systemLogger.log.systemError("server error (err : %s)", err.stack);
   return res.status(500).json({

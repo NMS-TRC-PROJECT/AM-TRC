@@ -23,12 +23,6 @@ class transcoderWorker2 extends require("@amuzlab/worker").Worker {
         writable: true,
         value: {},
       },
-      /*       _trcScheduler: {
-        writable: true,
-        value: schedule.scheduleJob("0/5 * * * * *", () => {
-          console.log(this._trcStatus);
-        }),
-      }, 레거시 */
       _trcLogger: {
         writable: true,
         value: null,
@@ -41,14 +35,7 @@ class transcoderWorker2 extends require("@amuzlab/worker").Worker {
   }
 
   set job(job) {
-    if (!job.input) {
-      job.data.input = {
-        inputType: "FILE",
-        typeInfo: `${ROOT_PATH}/mnt/input/${job.data.basic.inputFilename}`,
-      };
-      //  리팩토링 필요
-    }
-    try {
+    /*   try {
       const ffmpegLoggers = Object.entries(Choicer).find(
         (e) => e[1] === true
       )[0];
@@ -62,15 +49,28 @@ class transcoderWorker2 extends require("@amuzlab/worker").Worker {
       super.job = job;
     } catch (error) {
       this.emit("error", error, this.job);
-    }
+    } */
+    super.job = job;
   }
   // 리팩토링 필요
+
+  stop() {
+    console.log("end");
+  }
 
   exec() {
     super.exec();
     try {
       initATRC.call(this);
-      this._atrc.exec(this.job);
+      this._atrc
+        .exec(this.job)
+        .then((result) => {
+          console.log("result =>", result);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+
       // this.execTRC(); 레거시
     } catch (error) {
       this._trcScheduler.cancel();
@@ -99,38 +99,22 @@ class transcoderWorker2 extends require("@amuzlab/worker").Worker {
     );
   }
 
-  updateTrcStatus(data) {
-    let frame = String(data).match(/^frame/)?.[0], // stderr에서 log 정보가 있는 경우를 찾기 위해 사용
-      trcInfo = String(data).match(/(\d*\.?\d+)/g),
-      dup = String(data).match(/dup/)?.[0],
-      drop = String(data).match(/drop/)?.[0];
-
-    if (frame) {
-      this._trcStatus.frame = trcInfo[0];
-      this._trcStatus.bitrate = `${trcInfo[7]}kbits/s`;
-      if (dup && drop) {
-        this._trcStatus.speed = `${trcInfo[10] ? trcInfo[10] : trcInfo[9]}x`;
-      } else {
-        this._trcStatus.speed = `${trcInfo[8]}x`;
-      }
-      this._trcStatus.status = 2;
-      this._trcStatus.percentage = `${(
-        (trcInfo[0] / this._trcStatus.totalFrame) *
-        100
-      ).toFixed(2)}%`;
-    }
-  }
-
   // setTrcStatus 간소화 필요
 }
 
 function initATRC() {
-  atrc.config = { command: process.env.ATRC_PATH };
+  atrc.config = {
+    env: { LD_LIBRARY_PATH: process.env.ENV },
+    // command: process.env.ATRC_PATH,
+    // lib: process.env.ATRC_LIB,
+    // packager: ,
+  };
 
   this._atrc = atrc
     .getATRC({
+      tempPath: `${ROOT_PATH}/mnt/output`,
       isProgress: true,
-      progressInterval: 5,
+      progressInterval: 0.5,
       progressCheckInterval: 1,
       checkIncremetProgressTimeCnt: 3,
       retryCnt: 0,
@@ -138,11 +122,31 @@ function initATRC() {
         stopSignal: 255,
         successCode: 0,
         pidPath: `${ROOT_PATH}/mnt/pid`,
+        // cwd: "/",
+        // env: {},
       },
     })
-    .on("start", (job, atrc) => {
-      console.log("start =>", job, atrc);
+    .on("transcoder.trc.start", (job, atrc) => console.log("start =>", job))
+    .on("transcoder.trc.end", (job, atrc) => console.log("end", job))
+    .on("error", (err, job, atrc) => console.error("error =>", err))
+    .on("progress", (progress, job, atrc) =>
+      console.log("progress =>", JSON.stringify(progress, null, "\t"))
+    )
+    .on("mediaMetaError", (err, job, atrc) =>
+      console.log("mediaMetaError ", err)
+    )
+    .on("transcoder.trc.command", (command, atrc) =>
+      console.log("transcoder.trc.command =>", command)
+    )
+    .on("transcoder.trc.error", (err, job, atrc) =>
+      console.error("transcoder.trc.error", err)
+    )
+    .on("end", (job, atrc) => {
+      console.log(job, 1);
     });
+  // .on("transcoder.trc.stderr", (stderr, job, atrc) => {
+  //   console.log(stderr);
+  // });
 
   // const command = transcoder.commandBuilder.command.encoding(this.job.data);
   // systemLogger.systemDebug("ffmpeg_command", command.join(" "));

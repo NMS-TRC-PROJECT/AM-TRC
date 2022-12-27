@@ -6,14 +6,17 @@ const Logger = require("@amuzlab/logger"),
     logFileName: "system_log",
   });
 
+// logger 인자값 인피니티로 받을 수 있게 수정하기
+
 Object.defineProperties(exports, {
   systemInfo: {
     enumerable: true,
-    value: (message, data, data2) => {
+    value: (message, data, data2, data3) => {
       systemLogger.info(
         `${message} %s`,
         `: ${data}`,
-        data2 ? `: ${data2}` : ""
+        data2 ? `: ${data2}` : "",
+        data3 ? `: ${data3}` : ""
       );
     },
   },

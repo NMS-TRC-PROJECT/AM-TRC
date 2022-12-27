@@ -2,8 +2,8 @@ const { spawn } = require("child_process");
 const { exec } = require("child_process");
 
 require("dotenv").config();
-const ffmpeg = process.env.ATRC_PATH;
-const ffprobe = process.env.FFPROBE_OFFICE;
+const ffmpeg = process.env.FFMPEG;
+const ffprobe = process.env.FFPROBE;
 const ROOT_PATH = process.env.OFFICE_PWD_PATH;
 
 // const ffmpeg = process.env.FFMPEG_LOCAL;

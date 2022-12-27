@@ -16,7 +16,7 @@ Object.defineProperties(exports, {
       let id;
       try {
         job = createJob(body);
-        checkExecJob(job.id, job.serviceType);
+        // checkExecJob(job.id, job.serviceType);
         updateTrcStatus(job);
         id = manager.exec(job);
 

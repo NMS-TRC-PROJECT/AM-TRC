@@ -15,6 +15,7 @@ Object.defineProperties(exports, {
   sendTranscodeJobStatus: {
     enumerable: true,
     value: async (trcStatus) => {
+      console.log(trcStatus);
       try {
         systemLogger.systemInfo(
           `Sending transcode job status. (data: %s)`,
@@ -22,16 +23,17 @@ Object.defineProperties(exports, {
         );
         const {
           status,
-          data: { resultCode },
+          data: { errorString, resultCode },
         } = await request.request(
           request.METHOD.PUT,
           `${baseUrl}/trc/vod/status`,
           trcStatus
         );
         systemLogger.systemInfo(
-          `Sending transcode job status succeeded (status: %s, resultCode: %s)`,
+          `Sending transcode job status succeeded (status: %s, resultCode: %s, errorString: %s)`,
           JSON.stringify(status),
-          JSON.stringify(resultCode)
+          JSON.stringify(resultCode),
+          JSON.stringify(errorString)
         );
       } catch (error) {
         systemLogger.systemError(
@@ -39,7 +41,6 @@ Object.defineProperties(exports, {
           JSON.stringify(trcStatus),
           JSON.stringify(error, Object.getOwnPropertyNames(error))
         );
-        // 혼자 요청 보낼 떄 에러나는데 왜 나는지 모르겠음... ㅠㅠ
       }
     },
   },

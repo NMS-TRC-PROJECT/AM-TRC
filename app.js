@@ -21,9 +21,7 @@ app.use(
   (req, res, next) => {
     logger.systemLogger.log.systemInfo(
       "server info %s",
-      `method ${req.method}, Url ${req.originalUrl}, body ${JSON.stringify(
-        req.body
-      )}`
+      `method ${req.method}, Url ${req.originalUrl}}`
     );
     next();
   },

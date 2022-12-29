@@ -1,7 +1,6 @@
-const schedule = require("node-schedule"),
-  transcoder = require("../../transcoder"),
-  manager = require("../../manager"),
-  atrc = require("@amuzlab/atrc");
+const atrc = require("@amuzlab/atrc"),
+  request = require("./request"),
+  ENUM = require("./enum");
 
 const logger = require("../../logger"),
   ffmpegLogger = logger.ffmpegLogger.log,
@@ -19,10 +18,6 @@ class transcoderWorker2 extends require("@amuzlab/worker").Worker {
         writable: true,
         value: null,
       },
-      _trcStatus: {
-        writable: true,
-        value: {},
-      },
       _trcLogger: {
         writable: true,
         value: null,
@@ -35,86 +30,76 @@ class transcoderWorker2 extends require("@amuzlab/worker").Worker {
   }
 
   set job(job) {
-    /*   try {
-      const ffmpegLoggers = Object.entries(Choicer).find(
-        (e) => e[1] === true
-      )[0];
+    const ffmpegLoggers = Object.entries(Choicer).find((e) => e[1] === true)[0];
+    if (ffmpegLoggers === "ffmpegLogger")
+      (Choicer.ffmpegLogger = false), (this._trcLogger = ffmpegLogger);
+    else (Choicer.ffmpegLogger2 = false), (this._trcLogger = ffmpegLogger2);
+    job.data.logger = ffmpegLoggers;
 
-      if (ffmpegLoggers === "ffmpegLogger")
-        (Choicer.ffmpegLogger = false), (this._trcLogger = ffmpegLogger);
-      else (Choicer.ffmpegLogger2 = false), (this._trcLogger = ffmpegLogger2);
-
-      job.data.logger = ffmpegLoggers;
-
-      super.job = job;
-    } catch (error) {
-      this.emit("error", error, this.job);
-    } */
+    job.status = ENUM.JOB.STATUS.WAITING;
     super.job = job;
   }
   // 리팩토링 필요
 
   stop() {
-    console.log("end");
+    this._atrc
+      .stop()
+      .then(() => {
+        loggerBalance.call(this);
+        systemLogger.systemInfo(
+          "worker stop success (transactionId: %s)",
+          job.id
+        );
+        sendTranscodeJobStatus.call(this, this.job, ENUM.JOB.STATUS.CANCEL);
+        super.stop();
+      })
+      .catch((error) => {
+        loggerBalance.call(this);
+        systemLogger.systemInfo("worker stop error (error: %j)", error);
+        sendTranscodeJobStatus.call(
+          this,
+          this.job,
+          ENUM.JOB.STATUS.ERROR,
+          null,
+          error
+        );
+        this.emit("error", error, this.job, this);
+      });
   }
 
   exec() {
     super.exec();
     try {
       initATRC.call(this);
+      sendTranscodeJobStatus.call(this, this.job, ENUM.JOB.STATUS.WAITING);
       this._atrc
         .exec(this.job)
         .then((result) => {
-          console.log("result =>", result);
+          systemLogger.systemDebug(
+            `worker exec result  (result: %s)`,
+            result ? JSON.stringify(result) : undefined
+          );
         })
         .catch((error) => {
-          console.log(error);
+          workerErrorHandler.call(this, error);
         });
-
-      // this.execTRC(); 레거시
     } catch (error) {
-      this._trcScheduler.cancel();
-      this.job.data.logger === "ffmpegLogger"
-        ? (Choicer.ffmpegLogger = true)
-        : (Choicer.ffmpegLogger2 = true);
-
-      this._trcStatus.status = -1;
-      console.log(this._trcStatus); // post 요청
-
-      this.emit("error", error, this.job);
-      manager.cancel(this.job.id);
+      workerErrorHandler.call(this, error);
     }
   }
-
-  async totalFrame() {
-    return (
-      Math.round(
-        await transcoder.TRC.getFileDuration(
-          `${this.job.data.basic.inputFolder}/${this.job.data.basic.inputFilename}`
-        )
-      ) *
-      (this.job.data.outputs.video.framerate
-        ? this.job.data.outputs.video.framerate
-        : 30)
-    );
-  }
-
-  // setTrcStatus 간소화 필요
 }
 
 function initATRC() {
   atrc.config = {
     env: { LD_LIBRARY_PATH: process.env.ENV },
-    // command: process.env.ATRC_PATH,
-    // lib: process.env.ATRC_LIB,
-    // packager: ,
+    // packager:
   };
 
   this._atrc = atrc
     .getATRC({
       tempPath: `${ROOT_PATH}/mnt/output`,
       isProgress: true,
-      progressInterval: 0.5,
+      progressInterval: 3,
       progressCheckInterval: 1,
       checkIncremetProgressTimeCnt: 3,
       retryCnt: 0,
@@ -122,71 +107,75 @@ function initATRC() {
         stopSignal: 255,
         successCode: 0,
         pidPath: `${ROOT_PATH}/mnt/pid`,
-        // cwd: "/",
-        // env: {},
       },
     })
-    .on("transcoder.trc.start", (job, atrc) => console.log("start =>", job))
-    .on("transcoder.trc.end", (job, atrc) => console.log("end", job))
-    .on("error", (err, job, atrc) => console.error("error =>", err))
-    .on("progress", (progress, job, atrc) =>
-      console.log("progress =>", JSON.stringify(progress, null, "\t"))
-    )
-    .on("mediaMetaError", (err, job, atrc) =>
-      console.log("mediaMetaError ", err)
+    .on("end", (job, atrc) => {
+      loggerBalance.call(this);
+      sendTranscodeJobStatus.call(this, job, ENUM.JOB.STATUS.DONE);
+      this.emit("end", this.job, this); // end emit에 this를 같이 보내지 않으면 worker가 멈추지 않음
+    })
+    .on("transcoder.trc.start", (job, atrc) =>
+      systemLogger.systemInfo("ATRC start (transactionId: %s)", job.id)
     )
     .on("transcoder.trc.command", (command, atrc) =>
-      console.log("transcoder.trc.command =>", command)
+      systemLogger.systemDebug(
+        `transcoder.trc.command (command: %s, transactionId : %s)`,
+        command,
+        this.job.id
+      )
     )
-    .on("transcoder.trc.error", (err, job, atrc) =>
-      console.error("transcoder.trc.error", err)
-    )
-    .on("end", (job, atrc) => {
-      console.log(job, 1);
+    .on("progress", (progress, job, atrc) => {
+      job.progress = progress;
+      sendTranscodeJobStatus.call(this, job, ENUM.JOB.STATUS.RUNNING);
+    })
+    .on("error", (err, job, atrc) => {
+      workerErrorHandler.call(this, err);
+    })
+    // .on("transcoder.trc.error", (err, job, atrc) =>
+    //   console.error("transcoder.trc.error", err)
+    // )
+    .on("transcoder.trc.stderr", (stderr) => {
+      stderr
+        .split("\n")
+        .forEach((msg) => msg && this._trcLogger.Debug(`[STDERR] ${msg}`));
     });
-  // .on("transcoder.trc.stderr", (stderr, job, atrc) => {
-  //   console.log(stderr);
-  // });
+}
 
-  // const command = transcoder.commandBuilder.command.encoding(this.job.data);
-  // systemLogger.systemDebug("ffmpeg_command", command.join(" "));
-  // this.checkFile() 기능 개발 예정
+async function sendTranscodeJobStatus(job, status, process, error) {
+  // const update = async () => {  };
+  job.status = status;
+  // process && (job.process = process);
+  return await request.vod.sendTranscodeJobStatusATRC(job, error);
+}
 
-  // this.job.data.childPsId = this._atrc.pid;
-  // this._trcScheduler;
-  // this._trcStatus.totalFrame = await this.totalFrame();
+function workerErrorHandler(error) {
+  loggerBalance.call(this);
+  sendTranscodeJobStatus.call(
+    this,
+    this.job,
+    ENUM.JOB.STATUS.ERROR,
+    null,
+    error
+  );
+  this.emit("error", error, this.job);
+  this._atrc &&
+    this._atrc
+      .stop()
+      .then(() =>
+        systemLogger.systemDebug(`worker stopped by error (error: %j)`, error)
+      )
+      .catch((error) =>
+        systemLogger.systemError(
+          `worker stopped by error error (error: %j)`,
+          error
+        )
+      ); // 에러 처리를 더해야 하나?
+}
+
+function loggerBalance() {
+  this.job.data.logger === "ffmpegLogger"
+    ? (Choicer.ffmpegLogger = true)
+    : (Choicer.ffmpegLogger2 = true);
 }
 
 module.exports = transcoderWorker2;
-
-/*  execTRC() {
-    this._atrc.stderr.on("data", (data) => {
-      this.updateTrcStatus(data);
-      this._trcLogger.ffmpegInfo("stderr", data);
-    });
-    // 상태업데이트 분리시켜보기
-
-    this._atrc.on("close", (code) => {
-      this.job.data.logger === "ffmpegLogger"
-        ? (Choicer.ffmpegLogger = true)
-        : (Choicer.ffmpegLogger2 = true);
-      this._trcLogger.ffmpegDebug("child process exited with code", code);
-      this._trcScheduler.cancel();
-
-      if (code === 0) {
-        this._trcStatus.status = 0;
-        this._trcStatus.percentage = `${100}%`;
-        console.log(this._trcStatus); // post 요청
-        this.emit("end", this.job, this);
-      } else if (code === 255) {
-        this._trcStatus.status = 3;
-        console.log(this._trcStatus); // post 요청
-        this.emit("end", this.job);
-      } else {
-        this._trcStatus.status = -1;
-        console.log(this._trcStatus); // post 요청
-        this.emit("error", `error code ${code}`, this.job);
-        manager.cancel(this.job.id);
-      }
-    });
-  } 레거시 */

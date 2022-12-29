@@ -7,26 +7,26 @@ const Logger = require("@amuzlab/logger"),
   });
 
 Object.defineProperties(exports, {
-  ffmpegInfo: {
+  Info: {
     enumerable: true,
     value: (message, data) => {
       ffmpegLogger.info(`${message} %s`, `: ${data}`);
     },
   },
 
-  ffmpegError: {
+  Error: {
     enumerable: true,
     value: (message, data) => {
       ffmpegLogger.error(`${message} %s`, `: ${data}`);
     },
   },
-  ffmpegWarn: {
+  Warn: {
     enumerable: true,
     value: (message, data) => {
       ffmpegLogger.warn(`${message} %s`, `: ${data}`);
     },
   },
-  ffmpegDebug: {
+  Debug: {
     enumerable: true,
     value: (message, data) => {
       ffmpegLogger.debug(`${message} %s`, `: ${data}`);

@@ -54,7 +54,7 @@ class Manager extends require("events") {
       ffmpegContainer2: {
         enumerable: true,
         value: new worker.WorkerContainer({
-          maxWorkerCount: 1,
+          maxWorkerCount: 2,
         })
           .on("workerExec", (job, worker, workerContainer) => {
             logger.systemLogger.log.systemDebug(
@@ -112,10 +112,7 @@ class Manager extends require("events") {
   async cancel(job) {
     switch (job.serviceType) {
       case workerMapper.SERVICE_TYPE.FFMPEG_TRC_2:
-        if ((await this.psKill(job, this.ffmpegContainer2)) === 0)
-          this.ffmpegContainer2.cancel(job.id);
         this.ffmpegContainer2.cancel(job.id);
-        // 리팩토링 필요
         break;
       default:
         await this.psKill(job, this.ffmpegContainer);

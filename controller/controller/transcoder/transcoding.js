@@ -16,8 +16,7 @@ Object.defineProperties(exports, {
       let id;
       try {
         job = createJob(body);
-        // checkExecJob(job.id, job.serviceType);
-        updateTrcStatus(job);
+        checkExecJob(job.id, job.serviceType);
         id = manager.exec(job);
 
         return res.status(200).json({
@@ -133,17 +132,4 @@ function checkCancelJob(job) {
   if (queue.find((j) => j.id === job.id) === undefined) {
     throw new Error("This ID is not found");
   }
-}
-
-function updateTrcStatus(job) {
-  request.vod.sendTranscodeJobStatus({
-    transactionId: job.id,
-    status: 1,
-    transcodes: [
-      {
-        presetCode: "",
-        outputFilename: job.data.basic.outputFilename,
-      },
-    ],
-  });
 }

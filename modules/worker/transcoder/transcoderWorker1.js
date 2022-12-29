@@ -43,12 +43,12 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
       const ffmpegLoggers = Object.entries(Choicer).find(
         (e) => e[1] === true
       )[0];
-
       if (ffmpegLoggers === "ffmpegLogger")
         (Choicer.ffmpegLogger = false), (this._trcLogger = ffmpegLogger);
       else (Choicer.ffmpegLogger2 = false), (this._trcLogger = ffmpegLogger2);
-
       job.data.logger = ffmpegLoggers;
+
+      updateTrcStatusSpawn.call(this, job);
 
       super.job = job;
     } catch (error) {
@@ -101,7 +101,7 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
   execTRC() {
     this._trc.stderr.on("data", (data) => {
       this.updateTrcStatus(data);
-      this._trcLogger.ffmpegInfo("stderr", data);
+      this._trcLogger.Info("stderr", data);
     });
     // 상태업데이트 분리시켜보기
 
@@ -109,14 +109,14 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
       this.job.data.logger === "ffmpegLogger"
         ? (Choicer.ffmpegLogger = true)
         : (Choicer.ffmpegLogger2 = true);
-      this._trcLogger.ffmpegDebug("child process exited with code", code);
+      this._trcLogger.Debug("child process exited with code", code);
       this._trcScheduler.cancel();
 
       if (code === 0) {
         this._trcStatus.status = 0;
         this._trcStatus.percentage = 100;
         request.vod.sendTranscodeJobStatus(this._trcStatus);
-        this.emit("end", this.job, this);
+        this.emit("end", this.job, this); // this를 같이 보내지 않으면 worker가 멈추지 않음
       } else if (code === 255) {
         this.job.code = 255;
         this._trcStatus.status = 3;
@@ -168,5 +168,18 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
 
   // 나중에 오브젝트 폴더 같은 것 만들어서 모듈화 해보기
 }
+
+function updateTrcStatusSpawn(job) {
+  request.vod.sendTranscodeJobStatus({
+    transactionId: job.id,
+    status: 1,
+    transcodes: [
+      {
+        presetCode: "",
+        outputFilename: job.data.basic.outputFilename,
+      },
+    ],
+  });
+} // 없앨 코드
 
 module.exports = transcoderWorker1;

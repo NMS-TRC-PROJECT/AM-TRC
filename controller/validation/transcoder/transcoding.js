@@ -12,7 +12,7 @@ Object.defineProperties(exports, {
 
         next(body);
       } catch (error) {
-        logger.systemLogger.log.systemError(
+        logger.systemLogger.log.Error(
           `[FFMPEG_TRC] Invalid Preset (error: %s)`,
           JSON.stringify(error, Object.getOwnPropertyNames(error))
         );

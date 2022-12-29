@@ -78,7 +78,7 @@ class transcoderWorker1 extends require("@amuzlab/worker").Worker {
 
   async initTRC() {
     const command = transcoder.commandBuilder.command.encoding(this.job.data);
-    systemLogger.systemDebug("ffmpeg_command", command.join(" "));
+    systemLogger.Debug("ffmpeg_command", command.join(" "));
     // this.checkFile() 기능 개발 예정
 
     this._trc = transcoder.TRC.spawn(command);

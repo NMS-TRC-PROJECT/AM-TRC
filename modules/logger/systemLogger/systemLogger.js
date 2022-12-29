@@ -9,7 +9,7 @@ const Logger = require("@amuzlab/logger"),
 // logger 인자값 인피니티로 받을 수 있게 수정하기
 
 Object.defineProperties(exports, {
-  systemInfo: {
+  Info: {
     enumerable: true,
     value: (message, data, data2, data3) => {
       systemLogger.info(
@@ -21,7 +21,7 @@ Object.defineProperties(exports, {
     },
   },
 
-  systemError: {
+  Error: {
     enumerable: true,
     value: (message, data, data2) => {
       systemLogger.error(
@@ -31,13 +31,13 @@ Object.defineProperties(exports, {
       );
     },
   },
-  systemWarn: {
+  Warn: {
     enumerable: true,
     value: (message, data, data2) => {
       systemLogger.warn(`${message} %s`, `: ${data}`);
     },
   },
-  systemDebug: {
+  Debug: {
     enumerable: true,
     value: (message, data, data2) => {
       systemLogger.debug(

@@ -14,7 +14,7 @@ class Manager extends require("events") {
           // autoGenerateJobId: true,
         })
           .on("workerExec", (job, worker, workerContainer) => {
-            logger.systemLogger.log.systemDebug(
+            logger.systemLogger.log.Debug(
               "[workerContainer] workerExec (job.id: %s, job.serviceType: %s)",
               `${JSON.stringify(job.id)}`,
               `${JSON.stringify(job.serviceType)}`
@@ -22,28 +22,28 @@ class Manager extends require("events") {
           })
           .on("workerEnd", (job, worker, workerContainer) => {
             if (job.code === 255) return this.ffmpegContainer.cancel(job.id);
-            logger.systemLogger.log.systemDebug(
+            logger.systemLogger.log.Debug(
               "[workerContainer] workerEnd (job.id: %s, job.serviceType: %s)",
               `${JSON.stringify(job.id)}`,
               `${JSON.stringify(job.serviceType)}`
             );
           })
           .on("workerStop", (job, worker, workerContainer) => {
-            logger.systemLogger.log.systemDebug(
+            logger.systemLogger.log.Debug(
               "[workerContainer] workerStop (job.id: %s, job.serviceType: %s)",
               `${JSON.stringify(job.id)}`,
               `${JSON.stringify(job.serviceType)}`
             );
           })
           .on("workerError", (error, job, worker, workerContainer) => {
-            logger.systemLogger.log.systemError(
+            logger.systemLogger.log.Error(
               "[workerContainer] workerError (job: %s, error : %s)",
               `${JSON.stringify(job)}`,
               `${JSON.stringify(error, Object.getOwnPropertyNames(error))}`
             );
           })
           .on("execError", (error, job, workerContainer) => {
-            logger.systemLogger.log.systemError(
+            logger.systemLogger.log.Error(
               "[workerContainer] execError (job: %s, error : %s)",
               `${JSON.stringify(job)}`,
               `${JSON.stringify(error, Object.getOwnPropertyNames(error))}`
@@ -57,35 +57,35 @@ class Manager extends require("events") {
           maxWorkerCount: 2,
         })
           .on("workerExec", (job, worker, workerContainer) => {
-            logger.systemLogger.log.systemDebug(
+            logger.systemLogger.log.Debug(
               "[workerContainer2] workerExec (job.id: %s, job.serviceType: %s)",
               `${JSON.stringify(job.id)}`,
               `${JSON.stringify(job.serviceType)}`
             );
           })
           .on("workerEnd", (job, worker, workerContainer) => {
-            logger.systemLogger.log.systemDebug(
+            logger.systemLogger.log.Debug(
               "[workerContainer2] workerEnd (job.id: %s, job.serviceType: %s)",
               `${JSON.stringify(job.id)}`,
               `${JSON.stringify(job.serviceType)}`
             );
           })
           .on("workerStop", (job, worker, workerContainer) => {
-            logger.systemLogger.log.systemDebug(
+            logger.systemLogger.log.Debug(
               "[workerContainer2] workerStop (job.id: %s, job.serviceType: %s)",
               `${JSON.stringify(job.id)}`,
               `${JSON.stringify(job.serviceType)}`
             );
           })
           .on("workerError", (error, job, worker, workerContainer) => {
-            logger.systemLogger.log.systemError(
+            logger.systemLogger.log.Error(
               "[workerContainer2] workerError (job: %s, error : %s)",
               `${JSON.stringify(job)}`,
               `${JSON.stringify(error, Object.getOwnPropertyNames(error))}`
             );
           })
           .on("execError", (error, job, workerContainer) => {
-            logger.systemLogger.log.systemError(
+            logger.systemLogger.log.Error(
               "[workerContainer2] execError (job: %s, error : %s)",
               `${JSON.stringify(job)}`,
               `${JSON.stringify(error, Object.getOwnPropertyNames(error))}`
@@ -126,7 +126,7 @@ class Manager extends require("events") {
       )
       .then((code) => {
         if (code !== 0)
-          logger.systemLogger.log.systemError(
+          logger.systemLogger.log.Error(
             "[process] killError (code: %s) ",
             `${code}`
           );

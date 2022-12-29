@@ -27,7 +27,7 @@ Object.defineProperties(exports, {
           },
         });
       } catch (error) {
-        logger.systemLogger.log.systemError(
+        logger.systemLogger.log.Error(
           `[FFMPEG_TRC] Job execution failed. (job: %s, error: %s)`,
           JSON.stringify(job),
           JSON.stringify(error, Object.getOwnPropertyNames(error))
@@ -49,7 +49,7 @@ Object.defineProperties(exports, {
 
         return res.status(200).json({ resultCode: 200, errorString: "" });
       } catch (error) {
-        logger.systemLogger.log.systemError(
+        logger.systemLogger.log.Error(
           `[FFMPEG_TRC] Job cancellation failed. (transactionId: %s, error: %s)`,
           JSON.stringify(job.transactionId),
           JSON.stringify(error, Object.getOwnPropertyNames(error))
@@ -66,13 +66,10 @@ Object.defineProperties(exports, {
     value: (req, res, next) => {
       try {
         res.sendStatus(200);
-        logger.systemLogger.log.systemInfo(
-          `[FFMPEG_TRC] get status success.`,
-          200
-        );
+        logger.systemLogger.log.Info(`[FFMPEG_TRC] get status success.`, 200);
       } catch (error) {
         res.sendStatus(500);
-        logger.systemLogger.log.systemError(
+        logger.systemLogger.log.Error(
           `[FFMPEG_TRC] get status failed. (error: %s)`,
           error
         );

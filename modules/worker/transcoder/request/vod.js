@@ -16,7 +16,7 @@ Object.defineProperties(exports, {
     enumerable: true,
     value: async (trcStatus) => {
       try {
-        systemLogger.systemInfo(
+        systemLogger.Info(
           `Sending transcode job status. (data: %s)`,
           JSON.stringify(trcStatus)
         );
@@ -28,14 +28,14 @@ Object.defineProperties(exports, {
           `${baseUrl}/trc/vod/status`,
           trcStatus
         );
-        systemLogger.systemInfo(
+        systemLogger.Info(
           `Sending transcode job status succeeded (status: %s, resultCode: %s, errorString: %s)`,
           JSON.stringify(status),
           JSON.stringify(resultCode),
           JSON.stringify(errorString)
         );
       } catch (error) {
-        systemLogger.systemError(
+        systemLogger.Error(
           `Failed to send transcode job status. (trcStatus: %s, error: %s)`,
           JSON.stringify(trcStatus),
           JSON.stringify(error, Object.getOwnPropertyNames(error))
@@ -58,7 +58,7 @@ Object.defineProperties(exports, {
         errorCode: error && error.errorCode ? error.errorCode : "",
       };
       try {
-        systemLogger.systemInfo(
+        systemLogger.Info(
           `Sending transcode job status. (data: %s)`,
           JSON.stringify(data)
         );
@@ -70,14 +70,14 @@ Object.defineProperties(exports, {
           `${baseUrl}/trc/vod/status`,
           data
         );
-        systemLogger.systemInfo(
+        systemLogger.Info(
           `Sending transcode job status succeeded (status: %s, resultCode: %s, errorString: %s)`,
           JSON.stringify(status),
           JSON.stringify(resultCode),
           JSON.stringify(errorString)
         );
       } catch (error) {
-        systemLogger.systemError(
+        systemLogger.Error(
           `Failed to send transcode job status. (error: %s)`,
           JSON.stringify(error, Object.getOwnPropertyNames(error))
         );

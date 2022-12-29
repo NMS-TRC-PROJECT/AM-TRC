@@ -46,16 +46,12 @@ class transcoderWorker2 extends require("@amuzlab/worker").Worker {
       .stop()
       .then(() => {
         loggerBalance.call(this);
-        systemLogger.systemInfo(
-          "worker stop success (transactionId: %s)",
-          job.id
-        );
         sendTranscodeJobStatus.call(this, this.job, ENUM.JOB.STATUS.CANCEL);
         super.stop();
       })
       .catch((error) => {
         loggerBalance.call(this);
-        systemLogger.systemInfo("worker stop error (error: %j)", error);
+        systemLogger.Info("worker stop error (error: %j)", error);
         sendTranscodeJobStatus.call(
           this,
           this.job,
@@ -75,7 +71,7 @@ class transcoderWorker2 extends require("@amuzlab/worker").Worker {
       this._atrc
         .exec(this.job)
         .then((result) => {
-          systemLogger.systemDebug(
+          systemLogger.Debug(
             `worker exec result  (result: %s)`,
             result ? JSON.stringify(result) : undefined
           );
@@ -115,10 +111,10 @@ function initATRC() {
       this.emit("end", this.job, this); // end emit에 this를 같이 보내지 않으면 worker가 멈추지 않음
     })
     .on("transcoder.trc.start", (job, atrc) =>
-      systemLogger.systemInfo("ATRC start (transactionId: %s)", job.id)
+      systemLogger.Info("ATRC start (transactionId: %s)", job.id)
     )
     .on("transcoder.trc.command", (command, atrc) =>
-      systemLogger.systemDebug(
+      systemLogger.Debug(
         `transcoder.trc.command (command: %s, transactionId : %s)`,
         command,
         this.job.id
@@ -162,13 +158,10 @@ function workerErrorHandler(error) {
     this._atrc
       .stop()
       .then(() =>
-        systemLogger.systemDebug(`worker stopped by error (error: %j)`, error)
+        systemLogger.Debug(`worker stopped by error (error: %j)`, error)
       )
       .catch((error) =>
-        systemLogger.systemError(
-          `worker stopped by error error (error: %j)`,
-          error
-        )
+        systemLogger.Error(`worker stopped by error error (error: %j)`, error)
       ); // 에러 처리를 더해야 하나?
 }
 

@@ -8,12 +8,12 @@ Object.defineProperties(exports, {
     value: (req, res, next) => {
       try {
         let { body } = req;
-        // transcoder.commandBuilder.command.validation(body);
+        // transcoder.commandBuilder.command.validation(body); 레거시
 
         next(body);
       } catch (error) {
         logger.systemLogger.log.Error(
-          `[FFMPEG_TRC] Invalid Preset (error: %s)`,
+          `[STUDY_TRC] Invalid Preset (error: %s)`,
           JSON.stringify(error, Object.getOwnPropertyNames(error))
         );
         return res

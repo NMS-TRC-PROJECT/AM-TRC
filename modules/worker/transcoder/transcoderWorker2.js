@@ -162,7 +162,7 @@ function workerErrorHandler(error) {
       )
       .catch((error) =>
         systemLogger.Error(`worker stopped by error error (error: %j)`, error)
-      ); // 에러 처리를 더해야 하나?
+      );
 }
 
 function loggerBalance() {

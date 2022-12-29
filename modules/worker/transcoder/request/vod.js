@@ -54,6 +54,11 @@ Object.defineProperties(exports, {
           job.progress && job.progress.percentage ? job.progress.percentage : 0,
         status: job.status,
         transactionId: job.id,
+        transcodes: [
+          {
+            outputFilename: job.data.outputs[0].typeInfo,
+          },
+        ],
         errorString: error ? error.message : "",
         errorCode: error && error.errorCode ? error.errorCode : "",
       };

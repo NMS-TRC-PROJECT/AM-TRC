@@ -1,8 +1,7 @@
 const works = require("@amuzlab/worker"),
   { Job, Worker, WorkerContainer, error, map } = works,
   workerMapper = require("../../../modules/WorkerMapper"),
-  manager = require("../../../modules/manager"),
-  request = require("../../../modules/worker/transcoder/request");
+  manager = require("../../../modules/manager");
 
 const logger = require("../../../modules/logger");
 
@@ -28,7 +27,7 @@ Object.defineProperties(exports, {
         });
       } catch (error) {
         logger.systemLogger.log.Error(
-          `[FFMPEG_TRC] Job execution failed. (job: %s, error: %s)`,
+          `[STUDY_TRC] Job execution failed. (job: %s, error: %s)`,
           JSON.stringify(job),
           JSON.stringify(error, Object.getOwnPropertyNames(error))
         );
@@ -50,7 +49,7 @@ Object.defineProperties(exports, {
         return res.status(200).json({ resultCode: 200, errorString: "" });
       } catch (error) {
         logger.systemLogger.log.Error(
-          `[FFMPEG_TRC] Job cancellation failed. (transactionId: %s, error: %s)`,
+          `[STUDY_TRC] Job cancellation failed. (transactionId: %s, error: %s)`,
           JSON.stringify(job.transactionId),
           JSON.stringify(error, Object.getOwnPropertyNames(error))
         );
@@ -66,11 +65,11 @@ Object.defineProperties(exports, {
     value: (req, res, next) => {
       try {
         res.sendStatus(200);
-        logger.systemLogger.log.Info(`[FFMPEG_TRC] get status success.`, 200);
+        logger.systemLogger.log.Info(`[STUDY_TRC] get status success.`, 200);
       } catch (error) {
         res.sendStatus(500);
         logger.systemLogger.log.Error(
-          `[FFMPEG_TRC] get status failed. (error: %s)`,
+          `[STUDY_TRC] get status failed. (error: %s)`,
           error
         );
       }
@@ -80,13 +79,34 @@ Object.defineProperties(exports, {
 
 function createJob(obj) {
   let job = new Job();
-
   job.id = obj.transactionId;
-  job.data = obj;
   job.serviceType = obj.serviceType
     ? obj.serviceType
     : workerMapper.SERVICE_TYPE.FFMPEG_TRC_1;
 
+  if (
+    job.serviceType === SERVICE_TYPE.FFMPEG_TRC_2 &&
+    !Array.isArray(obj.outputs)
+  ) {
+    return createAtrcJob(job, obj);
+  }
+  job.data = obj;
+  return job;
+}
+
+function createAtrcJob(job, obj) {
+  obj.outputs.typeInfo = obj.basic.outputFilename;
+  const data = {
+    outputs: [obj.outputs],
+    input: {
+      typeInfo: `/home/shlee/mnt/input/${obj.basic.inputFilename}`,
+      inputType: "FILE",
+    },
+    transactionId: job.id,
+    serviceType: job.serviceType,
+  };
+
+  job.data = data;
   return job;
 }
 

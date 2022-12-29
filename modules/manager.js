@@ -97,7 +97,6 @@ class Manager extends require("events") {
 
   exec(job) {
     let result;
-
     switch (job.serviceType) {
       case workerMapper.SERVICE_TYPE.FFMPEG_TRC_2:
         result = this.ffmpegContainer2.exec(job);

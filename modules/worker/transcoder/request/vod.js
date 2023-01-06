@@ -63,6 +63,7 @@ Object.defineProperties(exports, {
         errorCode: error && error.errorCode ? error.errorCode : "",
       };
       try {
+        console.log(job.status, job.id);
         systemLogger.Info(
           `Sending transcode job status. (data: %s)`,
           JSON.stringify(data)

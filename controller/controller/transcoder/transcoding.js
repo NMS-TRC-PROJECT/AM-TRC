@@ -133,16 +133,17 @@ function checkExecJob(id, serviceType) {
 function checkCancelJob(job) {
   let queue;
   switch (job.serviceType) {
-    case workerMapper.SERVICE_TYPE.FFMPEG_TRC_2:
-      queue = [
-        ...manager.ffmpegContainer2.readyQueue,
-        ...manager.ffmpegContainer2.execQueue,
-      ];
-      break;
-    default:
+    case workerMapper.SERVICE_TYPE.FFMPEG_TRC_1:
       queue = [
         ...manager.ffmpegContainer.readyQueue,
         ...manager.ffmpegContainer.execQueue,
+      ];
+      break;
+    default: //job.serviceType이 undefined인 경우 serviceType에 디폴트 값 넣어줌
+      job.serviceType = workerMapper.SERVICE_TYPE.FFMPEG_TRC_2;
+      queue = [
+        ...manager.ffmpegContainer2.readyQueue,
+        ...manager.ffmpegContainer2.execQueue,
       ];
   }
 

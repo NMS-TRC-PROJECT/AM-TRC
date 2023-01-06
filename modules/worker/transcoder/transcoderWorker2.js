@@ -1,4 +1,5 @@
 const atrc = require("@amuzlab/atrc"),
+  { RequestBalancer } = require("@amuzlab/request"),
   request = require("./request"),
   ENUM = require("./enum");
 
@@ -21,6 +22,17 @@ class transcoderWorker2 extends require("@amuzlab/worker").Worker {
       _trcLogger: {
         writable: true,
         value: null,
+      },
+      _statusUpdateQueue: {
+        writable: true,
+        value: new RequestBalancer({
+          errorHandler: (error) =>
+            systemLogger.Error(
+              `[%s] statusUpdateQueue error (error: %j)`,
+              this.job.id,
+              error
+            ),
+        }),
       },
     });
   }
@@ -45,11 +57,13 @@ class transcoderWorker2 extends require("@amuzlab/worker").Worker {
     this._atrc
       .stop()
       .then(() => {
+        this._statusUpdateQueue.clear();
         loggerBalance.call(this);
         sendTranscodeJobStatus.call(this, this.job, ENUM.JOB.STATUS.CANCEL);
         super.stop();
       })
       .catch((error) => {
+        this._statusUpdateQueue.clear();
         loggerBalance.call(this);
         systemLogger.Info("worker stop error (error: %j)", error);
         sendTranscodeJobStatus.call(
@@ -102,7 +116,7 @@ function initATRC() {
       transcoder: {
         stopSignal: 255,
         successCode: 0,
-        pidPath: `${ROOT_PATH}/mnt/pid`,
+        // pidPath: `${ROOT_PATH}/mnt/pid`,
       },
     })
     .on("end", (job, atrc) => {
@@ -138,10 +152,11 @@ function initATRC() {
 }
 
 async function sendTranscodeJobStatus(job, status, process, error) {
-  // const update = async () => {  };
-  job.status = status;
-  // process && (job.process = process);
-  return await request.vod.sendTranscodeJobStatusATRC(job, error);
+  const update = async () => {
+    job.status = status;
+    return await request.vod.sendTranscodeJobStatusATRC(job, error);
+  };
+  this._statusUpdateQueue.push(update);
 }
 
 function workerErrorHandler(error) {

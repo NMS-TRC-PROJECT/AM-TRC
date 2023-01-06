@@ -8,7 +8,7 @@ Object.defineProperties(exports, {
     value: (req, res, next) => {
       try {
         let { body } = req;
-        // transcoder.commandBuilder.command.validation(body); 레거시
+        // transcoder.commandBuilder.command.validation(body);
 
         next(body);
       } catch (error) {
